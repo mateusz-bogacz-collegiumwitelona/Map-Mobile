@@ -13,18 +13,17 @@ import androidx.compose.ui.unit.sp
 import com.example.map.ui.theme.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
-import com.example.map.data.TokenManager
+import androidx.compose.runtime.saveable.rememberSaveable
 
 
 @Composable
-fun LoginScreen(onLoginClick: () -> Unit) {
+fun LoginScreen(
+    onLoginClick: (email: String, password: String, rememberMe: Boolean) -> Unit
+) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
-    var rememberMe by remember { mutableStateOf(false) }
+    var rememberMe by rememberSaveable { mutableStateOf(false) }
 
-    val context = LocalContext.current
-    val tokenManager = remember { TokenManager(context) }
 
     Column(
         modifier = Modifier
@@ -97,12 +96,7 @@ fun LoginScreen(onLoginClick: () -> Unit) {
 
         Button(
             onClick = {
-                // TODO: odbieranie tokenów z backendu, bez tego na razie tokeny zahardcodowane, do zmiany, luzik xD
-                tokenManager.saveTokens(
-                    accessToken = "fake_jwt_access_token_2137",
-                    refreshToken = "fake_jwt_refresh_token_6969"
-                )
-                onLoginClick()
+                onLoginClick(email, password, rememberMe)
             },
             modifier = Modifier.fillMaxWidth(),
             colors = ButtonDefaults.buttonColors(containerColor = ButtonLight),

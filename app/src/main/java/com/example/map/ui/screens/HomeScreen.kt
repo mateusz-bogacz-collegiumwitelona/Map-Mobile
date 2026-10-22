@@ -53,7 +53,7 @@ fun HomeScreen(onLogoutClick: () -> Unit) {
             Spacer(modifier = Modifier.height(24.dp))
 
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
-                HomeButton(title = "Moje podróže")
+                HomeButton(title = "Moje podróże")
                 HomeButton(title = "Nowa podróż")
             }
             Spacer(modifier = Modifier.height(16.dp))
