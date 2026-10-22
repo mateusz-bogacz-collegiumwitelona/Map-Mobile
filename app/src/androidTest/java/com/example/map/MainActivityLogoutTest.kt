@@ -1,18 +1,16 @@
 package com.example.map
 
+import androidx.activity.ComponentActivity
 import androidx.compose.ui.test.assertIsDisplayed
-import androidx.compose.ui.test.junit4.createEmptyComposeRule
+import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
-import androidx.test.core.app.ActivityScenario
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import androidx.test.platform.app.InstrumentationRegistry
 import com.example.map.data.AuthTokens
-import com.example.map.data.TokenManager
-import org.junit.After
+import com.example.map.data.TokenStorage
+import com.example.map.ui.navigation.AppNavigation
 import org.junit.Assert.assertNull
-import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -22,30 +20,22 @@ import org.junit.runner.RunWith
 class MainActivityLogoutTest {
 
     @get:Rule
-    val composeRule = createEmptyComposeRule()
+    val composeRule = createAndroidComposeRule<ComponentActivity>()
 
-    private lateinit var tokenManager: TokenManager
-    private lateinit var scenario: ActivityScenario<MainActivity>
+    private lateinit var tokenStorage: FakeTokenStorage
 
     @Before
     fun setUp() {
-        val context = InstrumentationRegistry.getInstrumentation().targetContext
-        tokenManager = TokenManager(context)
-        tokenManager.clearTokens()
-        tokenManager.saveTokens(
-            AuthTokens(
+        tokenStorage = FakeTokenStorage(
+            initialTokens = AuthTokens(
                 accessToken = "access-test-token",
                 refreshToken = "refresh-test-token"
             )
         )
 
-        scenario = ActivityScenario.launch(MainActivity::class.java)
-    }
-
-    @After
-    fun tearDown() {
-        scenario.close()
-        tokenManager.clearTokens()
+        composeRule.setContent {
+            AppNavigation(tokenStorage = tokenStorage)
+        }
     }
 
     @Test
@@ -55,14 +45,33 @@ class MainActivityLogoutTest {
         composeRule.onNodeWithContentDescription("Wyloguj").performClick()
 
         composeRule.onNodeWithText("Zaloguj się").assertIsDisplayed()
-        assertNull(tokenManager.getAccessToken())
-        assertNull(tokenManager.getRefreshToken())
+        assertNull(tokenStorage.getAccessToken())
+        assertNull(tokenStorage.getRefreshToken())
 
-        scenario.onActivity { activity ->
-            activity.onBackPressedDispatcher.onBackPressed()
-        }
+        composeRule.activity.onBackPressedDispatcher.onBackPressed()
 
         composeRule.waitForIdle()
         composeRule.onNodeWithText("Jan Kowalski").assertDoesNotExist()
+    }
+}
+
+private class FakeTokenStorage(
+    initialTokens: AuthTokens? = null
+) : TokenStorage {
+
+    private var tokens: AuthTokens? = initialTokens
+
+    override fun saveTokens(tokens: AuthTokens) {
+        this.tokens = tokens
+    }
+
+    override fun getAccessToken(): String? =
+        tokens?.accessToken
+
+    override fun getRefreshToken(): String? =
+        tokens?.refreshToken
+
+    override fun clearTokens() {
+        tokens = null
     }
 }
