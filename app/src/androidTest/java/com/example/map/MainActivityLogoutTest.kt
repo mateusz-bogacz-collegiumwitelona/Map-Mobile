@@ -48,7 +48,9 @@ class MainActivityLogoutTest {
         assertNull(tokenStorage.getAccessToken())
         assertNull(tokenStorage.getRefreshToken())
 
-        composeRule.activity.onBackPressedDispatcher.onBackPressed()
+        composeRule.runOnUiThread {
+            composeRule.activity.onBackPressedDispatcher.onBackPressed()
+        }
 
         composeRule.waitForIdle()
         composeRule.onNodeWithText("Jan Kowalski").assertDoesNotExist()
