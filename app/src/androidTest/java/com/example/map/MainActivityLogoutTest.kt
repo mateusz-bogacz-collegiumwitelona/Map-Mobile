@@ -55,7 +55,8 @@ class MainActivityLogoutTest {
         composeRule.onNodeWithContentDescription("Wyloguj").performClick()
 
         composeRule.onNodeWithText("Zaloguj się").assertIsDisplayed()
-        assertNull(tokenManager.getTokens())
+        assertNull(tokenManager.getAccessToken())
+        assertNull(tokenManager.getRefreshToken())
 
         scenario.onActivity { activity ->
             activity.onBackPressedDispatcher.onBackPressed()

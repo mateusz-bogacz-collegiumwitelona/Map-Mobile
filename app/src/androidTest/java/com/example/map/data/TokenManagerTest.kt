@@ -1,3 +1,4 @@
+
 package com.example.map.data
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -37,9 +38,10 @@ class TokenManagerTest {
 
         tokenManager.saveTokens(expected)
 
-        val tokensFromNewInstance = TokenManager(context).getTokens()
+        val newInstance = TokenManager(context)
 
-        assertEquals(expected, tokensFromNewInstance)
+        assertEquals(expected.accessToken, newInstance.getAccessToken())
+        assertEquals(expected.refreshToken, newInstance.getRefreshToken())
     }
 
     @Test
@@ -50,7 +52,8 @@ class TokenManagerTest {
         tokenManager.saveTokens(first)
         tokenManager.saveTokens(replacement)
 
-        assertEquals(replacement, tokenManager.getTokens())
+        assertEquals(replacement.accessToken, tokenManager.getAccessToken())
+        assertEquals(replacement.refreshToken, tokenManager.getRefreshToken())
     }
 
     @Test
@@ -61,6 +64,7 @@ class TokenManagerTest {
 
         tokenManager.clearTokens()
 
-        assertNull(tokenManager.getTokens())
+        assertNull(tokenManager.getAccessToken())
+        assertNull(tokenManager.getRefreshToken())
     }
 }

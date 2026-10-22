@@ -25,16 +25,15 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             MapTheme {
-                // TODO(auth): udostępniać TokenStorage przez DI, gdy DI zostanie dodane.
+                // TODO(auth)
                 val tokenStorage: TokenStorage = remember {
                     TokenManager(applicationContext)
                 }
 
                 val navController = rememberNavController()
 
-                // Zapisana para tokenów kieruje na Home po ponownym uruchomieniu aplikacji.
                 val startDestination = remember {
-                    if (tokenStorage.getTokens() != null) "home" else "login"
+                    if (tokenStorage.getAccessToken() != null) "home" else "login"
                 }
 
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->

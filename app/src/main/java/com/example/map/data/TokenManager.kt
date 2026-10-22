@@ -23,17 +23,11 @@ class TokenManager(context: Context) : TokenStorage {
             .apply()
     }
 
-    override fun getTokens(): AuthTokens? {
-        val accessToken = sharedPreferences.getString(ACCESS_TOKEN_KEY, null)
-            ?: return null
-        val refreshToken = sharedPreferences.getString(REFRESH_TOKEN_KEY, null)
-            ?: return null
+    override fun getAccessToken(): String? =
+        sharedPreferences.getString(ACCESS_TOKEN_KEY, null)
 
-        return AuthTokens(
-            accessToken = accessToken,
-            refreshToken = refreshToken
-        )
-    }
+    override fun getRefreshToken(): String? =
+        sharedPreferences.getString(REFRESH_TOKEN_KEY, null)
 
     override fun clearTokens() {
         sharedPreferences.edit()
