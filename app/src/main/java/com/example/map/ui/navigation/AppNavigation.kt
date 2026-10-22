@@ -10,6 +10,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.map.data.TokenStorage
+import com.example.map.domain.AuthSession
 import com.example.map.ui.screens.HomeScreen
 import com.example.map.ui.screens.LoginScreen
 
@@ -21,10 +22,14 @@ fun AppNavigation(
     tokenStorage: TokenStorage,
     modifier: Modifier = Modifier
 ) {
+    val authSession = remember(tokenStorage) {
+        AuthSession(tokenStorage)
+    }
+
     val navController = rememberNavController()
 
-    val startDestination = remember(tokenStorage) {
-        if (tokenStorage.getAccessToken() != null) {
+    val startDestination = remember(authSession) {
+        if (authSession.hasSavedSession()) {
             HOME_ROUTE
         } else {
             LOGIN_ROUTE
@@ -53,7 +58,7 @@ fun AppNavigation(
             composable(HOME_ROUTE) {
                 HomeScreen(
                     onLogoutClick = {
-                        tokenStorage.clearTokens()
+                        authSession.logout()
 
                         navController.navigate(LOGIN_ROUTE) {
                             popUpTo(HOME_ROUTE) { inclusive = true }

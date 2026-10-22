@@ -11,7 +11,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
-class TokenManagerTest {
+class TokenManagerIntegrationTest {
 
     private val context
         get() = InstrumentationRegistry.getInstrumentation().targetContext
