@@ -13,11 +13,17 @@ import androidx.compose.ui.unit.sp
 import com.example.map.ui.theme.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
+import androidx.compose.runtime.saveable.rememberSaveable
+
 
 @Composable
-fun LoginScreen(onLoginClick: () -> Unit) {
+fun LoginScreen(
+    onLoginClick: (email: String, password: String, rememberMe: Boolean) -> Unit
+) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    var rememberMe by rememberSaveable { mutableStateOf(false) }
+
 
     Column(
         modifier = Modifier
@@ -63,10 +69,35 @@ fun LoginScreen(onLoginClick: () -> Unit) {
             )
         )
 
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(12.dp))
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Start
+        ) {
+            Checkbox(
+                checked = rememberMe,
+                onCheckedChange = { rememberMe = it },
+                colors = CheckboxDefaults.colors(
+                    checkedColor = ButtonLight,
+                    uncheckedColor = TextGray,
+                    checkmarkColor = BackgroundDark
+                )
+            )
+            Spacer(modifier = Modifier.width(4.dp))
+            Text(
+                text = "Zapamiętaj mnie",
+                color = TextGray,
+                fontSize = 14.sp
+            )
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
 
         Button(
-            onClick = onLoginClick,
+            onClick = {
+                onLoginClick(email, password, rememberMe)
+            },
             modifier = Modifier.fillMaxWidth(),
             colors = ButtonDefaults.buttonColors(containerColor = ButtonLight),
             shape = RoundedCornerShape(8.dp)
