@@ -14,14 +14,16 @@ import com.example.map.ui.theme.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.foundation.selection.toggleable
+import androidx.compose.ui.semantics.Role
 
 
 @Composable
 fun LoginScreen(
     onLoginClick: (email: String, password: String, rememberMe: Boolean) -> Unit
 ) {
-    var email by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
+    var email by rememberSaveable { mutableStateOf("") }
+    var password by rememberSaveable { mutableStateOf("") }
     var rememberMe by rememberSaveable { mutableStateOf(false) }
 
 
@@ -71,13 +73,19 @@ fun LoginScreen(
 
         Spacer(modifier = Modifier.height(12.dp))
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .toggleable(
+                    value = rememberMe,
+                    role = Role.Checkbox,
+                    onValueChange = { rememberMe = it }
+                ),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Start
         ) {
             Checkbox(
                 checked = rememberMe,
-                onCheckedChange = { rememberMe = it },
+                onCheckedChange = null,
                 colors = CheckboxDefaults.colors(
                     checkedColor = ButtonLight,
                     uncheckedColor = TextGray,
