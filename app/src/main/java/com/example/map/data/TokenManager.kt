@@ -3,8 +3,12 @@ package com.example.map.data
 import android.content.Context
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
+import dagger.hilt.android.qualifiers.ApplicationContext
+import jakarta.inject.Inject
 
-class TokenManager(context: Context) : TokenStorage {
+class TokenManager @Inject constructor(
+    @ApplicationContext context: Context
+) : TokenStorage {
 
     private val sharedPreferences by lazy {
         val appContext = context.applicationContext
