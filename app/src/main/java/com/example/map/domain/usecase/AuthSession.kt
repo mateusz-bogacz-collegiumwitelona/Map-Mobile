@@ -1,7 +1,7 @@
-package com.example.map.domain
+package com.example.map.domain.usecase
 
-import com.example.map.data.AuthTokens
-import com.example.map.data.TokenStorage
+import com.example.map.domain.repository.TokenStorage
+import com.example.map.domain.model.AuthTokens
 
 class AuthSession(
     private val tokenStorage: TokenStorage

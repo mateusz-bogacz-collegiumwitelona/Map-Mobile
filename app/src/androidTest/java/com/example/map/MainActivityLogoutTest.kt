@@ -7,8 +7,8 @@ import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import com.example.map.data.AuthTokens
-import com.example.map.data.TokenStorage
+import com.example.map.domain.model.AuthTokens
+import com.example.map.domain.repository.TokenStorage
 import com.example.map.ui.navigation.AppNavigation
 import org.junit.Assert.assertNull
 import org.junit.Before

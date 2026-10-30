@@ -3,6 +3,8 @@ package com.example.map.data
 import android.content.Context
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
+import com.example.map.domain.model.AuthTokens
+import com.example.map.domain.repository.TokenStorage
 
 class TokenManager(context: Context) : TokenStorage {
 

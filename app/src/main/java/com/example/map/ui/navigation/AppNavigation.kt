@@ -9,8 +9,8 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.example.map.data.TokenStorage
-import com.example.map.domain.AuthSession
+import com.example.map.domain.repository.TokenStorage
+import com.example.map.domain.usecase.AuthSession
 import com.example.map.ui.screens.HomeScreen
 import com.example.map.ui.screens.LoginScreen
 

@@ -2,7 +2,7 @@ package com.example.map.di
 
 import android.content.Context
 import com.example.map.data.TokenManager
-import com.example.map.data.TokenStorage
+import com.example.map.domain.repository.TokenStorage
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
