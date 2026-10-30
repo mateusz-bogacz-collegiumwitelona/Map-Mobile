@@ -14,7 +14,7 @@ MAP-Mobile to aplikacja na Androida do zapisywania podróży i odwiedzonych miej
 ~~~
 .\gradlew.bat :app:testDebugUnitTest
 ~~~
-2. Testów instrumentowane Androida:
+2. Testów instrumentowanych Androida:
 ~~~
 .\gradlew.bat :app:connectedDebugAndroidTest
 ~~~

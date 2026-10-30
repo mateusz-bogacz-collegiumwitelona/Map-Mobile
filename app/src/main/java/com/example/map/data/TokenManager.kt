@@ -3,18 +3,26 @@ package com.example.map.data
 import android.content.Context
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
+import dagger.hilt.android.qualifiers.ApplicationContext
+import jakarta.inject.Inject
 
-class TokenManager(context: Context) : TokenStorage {
+class TokenManager @Inject constructor(
+    @ApplicationContext context: Context
+) : TokenStorage {
 
-    private val sharedPreferences = EncryptedSharedPreferences.create(
-        context.applicationContext,
-        PREFERENCES_NAME,
-        MasterKey.Builder(context.applicationContext)
-            .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
-            .build(),
-        EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
-        EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
-    )
+    private val sharedPreferences by lazy {
+        val appContext = context.applicationContext
+
+        EncryptedSharedPreferences.create(
+            appContext,
+            PREFERENCES_NAME,
+            MasterKey.Builder(appContext)
+                .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
+                .build(),
+            EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+            EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+        )
+    }
 
     override fun saveTokens(tokens: AuthTokens) {
         sharedPreferences.edit()
