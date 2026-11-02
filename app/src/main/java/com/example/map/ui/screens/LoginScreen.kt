@@ -23,7 +23,7 @@ fun LoginScreen(
     onLoginClick: (email: String, password: String, rememberMe: Boolean) -> Unit
 ) {
     var email by rememberSaveable { mutableStateOf("") }
-    var password by rememberSaveable { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
     var rememberMe by rememberSaveable { mutableStateOf(false) }
 
 
