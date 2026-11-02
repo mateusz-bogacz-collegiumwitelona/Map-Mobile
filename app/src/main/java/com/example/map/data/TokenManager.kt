@@ -1,4 +1,4 @@
-package com.example.map.di
+package com.example.map.data
 
 import android.content.Context
 import androidx.security.crypto.EncryptedSharedPreferences
