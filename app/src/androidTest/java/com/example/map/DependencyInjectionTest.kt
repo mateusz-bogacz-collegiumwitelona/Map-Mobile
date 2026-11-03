@@ -1,7 +1,9 @@
 package com.example.map
 
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.lifecycle.ViewModelProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.example.map.ui.viewmodels.AuthViewModel
 import org.junit.Assert.assertNotNull
 import org.junit.Rule
 import org.junit.Test
@@ -14,9 +16,12 @@ class DependencyInjectionTest {
     val composeRule = createAndroidComposeRule<MainActivity>()
 
     @Test
-    fun tokenStorageIsInjectedIntoMainActivity() {
+    fun hiltResolvesAuthViewModelAndItsDependencies() {
         composeRule.waitForIdle()
 
-        assertNotNull(composeRule.activity.tokenStorage)
+        val viewModel = ViewModelProvider(composeRule.activity)
+            .get(AuthViewModel::class.java)
+
+        assertNotNull(viewModel)
     }
 }
