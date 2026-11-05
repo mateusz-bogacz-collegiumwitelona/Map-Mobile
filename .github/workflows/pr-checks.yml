@@ -10,6 +10,11 @@ concurrency:
   group: pr-checks-${{ github.head_ref || github.run_id }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+  checks: write
+  pull-requests: write
+
 jobs:
   unit-tests:
     name: Run Unit Tests
@@ -35,7 +40,14 @@ jobs:
       - name: Run Unit Tests
         run: ./gradlew testDevelopmentDebugUnitTest --stacktrace
 
-      - name: Upload Unit Test Results
+      - name: Publish Unit Test Results
+        uses: EnricoMi/publish-unit-test-result-action@v2
+        if: always()
+        with:
+          check_name: "Unit Test Results"
+          files: 'app/build/test-results/**/*.xml'
+
+      - name: Upload Unit Test HTML Reports
         if: always()
         uses: actions/upload-artifact@v4
         with:
@@ -43,7 +55,7 @@ jobs:
           path: app/build/reports/tests/testDevelopmentDebugUnitTest/
 
   integration-tests:
-    name: Run Instrumented & Integration Tests 
+    name: Run Instrumented & Integration Tests
     needs: unit-tests
     runs-on: macos-latest
     timeout-minutes: 45
@@ -60,6 +72,9 @@ jobs:
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
+
+      - name: Make gradlew executable
+        run: chmod +x gradlew
 
       - name: AVD Cache
         uses: actions/cache@v4
@@ -83,7 +98,14 @@ jobs:
           disable-animations: true
           script: ./gradlew connectedDevelopmentDebugAndroidTest --no-daemon --stacktrace
 
-      - name: Upload Instrumented Test Results
+      - name: Publish Integration Test Results
+        uses: EnricoMi/publish-unit-test-result-action@v2
+        if: always()
+        with:
+          check_name: "Integration / Instrumented Test Results"
+          files: 'app/build/outputs/androidTest-results/**/TEST-*.xml'
+
+      - name: Upload Instrumented Test HTML Reports
         if: always()
         uses: actions/upload-artifact@v4
         with:

@@ -9,6 +9,12 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+  checks: write
+  issues: read
+  pull-requests: write
+
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -30,9 +36,8 @@ jobs:
       - name: Run Unit Tests
         run: ./gradlew testDevelopmentDebugUnitTest --stacktrace
 
-      - name: Upload Test Results
+      - name: Publish Test Results
+        uses: EnricoMi/publish-unit-test-result-action@v2
         if: always()
-        uses: actions/upload-artifact@v4
         with:
-          name: unit-test-results
-          path: app/build/reports/tests/testDevelopmentDebugUnitTest/ 
+          files: 'app/build/test-results/**/*.xml'
