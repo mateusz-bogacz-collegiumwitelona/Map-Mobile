@@ -96,8 +96,6 @@ jobs:
           emulator-options: -no-window -no-snapshot -noaudio -no-boot-anim -camera-back none -no-metrics
           disable-animations: true
           channel: stable
-          avd-name: test
-          cores: 2 
           script: ./gradlew connectedDevelopmentDebugAndroidTest --no-daemon --stacktrace
 
       - name: Publish Integration Test Results
