@@ -4,42 +4,50 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.example.map.data.TokenStorage
-import com.example.map.domain.AuthSession
 import com.example.map.ui.screens.HomeScreen
 import com.example.map.ui.screens.LoginScreen
+import com.example.map.ui.viewmodels.AuthViewModel
 
 private const val LOGIN_ROUTE = "login"
 private const val HOME_ROUTE = "home"
 
 @Composable
 fun AppNavigation(
-    tokenStorage: TokenStorage,
+    viewModel: AuthViewModel,
     modifier: Modifier = Modifier
 ) {
-    val authSession = remember(tokenStorage) {
-        AuthSession(tokenStorage)
-    }
-
+    val uiState by viewModel.uiState.collectAsState()
     val navController = rememberNavController()
 
-    val startDestination = remember(authSession) {
-        if (authSession.hasSavedSession()) {
-            HOME_ROUTE
-        } else {
-            LOGIN_ROUTE
+    val destination =
+        if (uiState.isAuthenticated) HOME_ROUTE else LOGIN_ROUTE
+
+    LaunchedEffect(destination) {
+        val currentRoute = navController.currentBackStackEntry
+            ?.destination
+            ?.route
+
+        if (currentRoute != null && currentRoute != destination) {
+            navController.navigate(destination) {
+                popUpTo(currentRoute) {
+                    inclusive = true
+                }
+                launchSingleTop = true
+            }
         }
     }
 
     Scaffold(modifier = modifier.fillMaxSize()) { innerPadding ->
         NavHost(
             navController = navController,
-            startDestination = startDestination,
+            startDestination = destination,
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
@@ -47,10 +55,7 @@ fun AppNavigation(
             composable(LOGIN_ROUTE) {
                 LoginScreen(
                     onLoginClick = { _, _, _ ->
-                        navController.navigate(HOME_ROUTE) {
-                            popUpTo(LOGIN_ROUTE) { inclusive = true }
-                            launchSingleTop = true
-                        }
+                        viewModel.onDemoLogin()
                     }
                 )
             }
@@ -58,12 +63,7 @@ fun AppNavigation(
             composable(HOME_ROUTE) {
                 HomeScreen(
                     onLogoutClick = {
-                        authSession.logout()
-
-                        navController.navigate(LOGIN_ROUTE) {
-                            popUpTo(HOME_ROUTE) { inclusive = true }
-                            launchSingleTop = true
-                        }
+                        viewModel.logout()
                     }
                 )
             }

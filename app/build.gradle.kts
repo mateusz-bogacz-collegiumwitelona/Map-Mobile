@@ -21,6 +21,28 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    flavorDimensions += "environment"
+
+    productFlavors {
+        create("development") {
+            dimension = "environment"
+            buildConfigField(
+                "String",
+                "API_BASE_URL",
+                "\"https://dev-api.example.invalid/\""
+            )
+        }
+
+        create("production") {
+            dimension = "environment"
+            buildConfigField(
+                "String",
+                "API_BASE_URL",
+                "\"https://api.example.invalid/\""
+            )
+        }
+    }
+
     buildTypes {
         release {
             optimization {
@@ -29,12 +51,15 @@ android {
             }
         }
     }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
+
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 
@@ -51,7 +76,7 @@ dependencies {
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.security.crypto)
-    implementation(libs.androidx.compose.material.icons.extended)
+    implementation("androidx.compose.material:material-icons-extended")
     testImplementation(libs.junit)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)

@@ -1,4 +1,4 @@
-package com.example.map.data
+package com.example.map.domain.model
 
 data class AuthTokens(
     val accessToken: String,

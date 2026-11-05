@@ -1,7 +1,8 @@
 package com.example.map.domain
 
-import com.example.map.data.AuthTokens
-import com.example.map.data.TokenStorage
+import com.example.map.domain.repository.TokenStorage
+import com.example.map.domain.model.AuthTokens
+import com.example.map.domain.usecase.AuthSession
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue

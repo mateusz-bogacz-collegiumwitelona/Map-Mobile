@@ -1,7 +1,7 @@
 package com.example.map.di
 
 import com.example.map.data.TokenManager
-import com.example.map.data.TokenStorage
+import com.example.map.domain.repository.TokenStorage
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
