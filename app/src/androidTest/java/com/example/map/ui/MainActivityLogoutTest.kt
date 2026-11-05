@@ -54,8 +54,7 @@ class MainActivityLogoutTest {
         assertNull(tokenStorage.getAccessToken())
         assertNull(tokenStorage.getRefreshToken())
 
-        // Bezpieczne cofnięcie w środowisku testowym:
-        Espresso.pressBack()
+        Espresso.pressBackUnconditionally()
 
         composeRule.waitForIdle()
         assertTrue(
