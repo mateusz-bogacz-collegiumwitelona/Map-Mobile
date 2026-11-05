@@ -55,9 +55,9 @@ jobs:
           path: app/build/reports/tests/testDevelopmentDebugUnitTest/
 
   integration-tests:
-    name: Run Instrumented & Integration Tests
+    name: Run Instrumented & Integration Tests (Ubuntu KVM)
     needs: unit-tests
-    runs-on: macos-latest
+    runs-on: ubuntu-latest
     timeout-minutes: 45
 
     steps:
@@ -76,6 +76,12 @@ jobs:
       - name: Make gradlew executable
         run: chmod +x gradlew
 
+      - name: Enable KVM Hardware Acceleration
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm-rules.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
       - name: AVD Cache
         uses: actions/cache@v4
         id: avd-cache
@@ -83,17 +89,17 @@ jobs:
           path: |
             ~/.android/avd/*
             ~/.android/adb*
-          key: avd-34-arm64-v8a
+          key: avd-34-x86_64
 
       - name: Create AVD and Run Instrumented Tests
         uses: reactivecircus/android-emulator-runner@v2
         with:
-          api-level: 33 #help
+          api-level: 34
           target: aosp_atd
-          arch: arm64-v8a
+          arch: x86_64
           force-avd-creation: false
           emulator-boot-timeout: 600
-          emulator-options: -no-window -no-snapshot -noaudio -no-boot-anim -camera-back none -no-metrics
+          emulator-options: -no-window -no-snapshot -noaudio -no-boot-anim -camera-back none -no-metrics -gpu swiftshader_indirect
           disable-animations: true
           channel: stable
           script: ./gradlew connectedDevelopmentDebugAndroidTest --no-daemon --stacktrace
