@@ -3,6 +3,7 @@
 This package contains Hilt modules that configure application dependencies.
 
 Add the following here:
+
 - providers and bindings,
 - dependency scopes, such as `@Singleton`.
 

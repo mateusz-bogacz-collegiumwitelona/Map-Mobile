@@ -4,11 +4,11 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
 import com.example.map.ui.navigation.AppNavigation
 import com.example.map.ui.theme.MapTheme
-import dagger.hilt.android.AndroidEntryPoint
-import androidx.activity.viewModels
 import com.example.map.ui.viewmodels.AuthViewModel
+import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {

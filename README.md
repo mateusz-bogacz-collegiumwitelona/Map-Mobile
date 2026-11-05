@@ -9,7 +9,6 @@ MAP-Mobile to aplikacja na Androida do zapisywania podróży i odwiedzonych miej
 3. W Android Studio otwórz **Build > Select Build Variant** i wybierz `developmentDebug`.
 4. Wybierz konfigurację `app` i kliknij **Run**.
 
-
 ##Aby zbudować wariant development i production:
 
 ```powershell
@@ -30,13 +29,15 @@ Testy jednostkowe dla obu wariantów:
 .\gradlew.bat :app:testDevelopmentDebugUnitTest :app:testProductionDebugUnitTest
 ```
 
-Testy instrumentowane dla wariantu development wymagają podłączonego urządzenia albo uruchomionego emulatora:
+Testy instrumentowane dla wariantu development wymagają podłączonego urządzenia albo uruchomionego
+emulatora:
 
 ```powershell
 .\gradlew.bat :app:connectedDevelopmentDebugAndroidTest
 ```
 
-Testy instrumentowane dla obu wariantów wymagają podłączonego urządzenia albo uruchomionego emulatora:
+Testy instrumentowane dla obu wariantów wymagają podłączonego urządzenia albo uruchomionego
+emulatora:
 
 ```powershell
 .\gradlew.bat :app:connectedDevelopmentDebugAndroidTest :app:connectedProductionDebugAndroidTest

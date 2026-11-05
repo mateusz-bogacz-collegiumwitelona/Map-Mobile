@@ -1,12 +1,12 @@
-package com.example.map
+package com.example.map.ui
 
-import androidx.activity.ComponentActivity
 import androidx.compose.ui.test.assertIsDisplayed
-import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.test.espresso.Espresso
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.example.map.domain.model.AuthTokens
 import com.example.map.domain.repository.TokenStorage
@@ -24,7 +24,7 @@ import org.junit.runner.RunWith
 class MainActivityLogoutTest {
 
     @get:Rule
-    val composeRule = createAndroidComposeRule<ComponentActivity>()
+    val composeRule = createComposeRule()
 
     private lateinit var tokenStorage: FakeTokenStorage
     private lateinit var authViewModel: AuthViewModel
@@ -54,9 +54,8 @@ class MainActivityLogoutTest {
         assertNull(tokenStorage.getAccessToken())
         assertNull(tokenStorage.getRefreshToken())
 
-        composeRule.runOnUiThread {
-            composeRule.activity.onBackPressedDispatcher.onBackPressed()
-        }
+        // Bezpieczne cofnięcie w środowisku testowym:
+        Espresso.pressBack()
 
         composeRule.waitForIdle()
         assertTrue(
