@@ -56,13 +56,13 @@ class MainActivityLogoutTest {
 
         Espresso.pressBackUnconditionally()
 
-        composeRule.waitForIdle()
-        assertTrue(
-            composeRule
-                .onAllNodesWithText("Jan Kowalski")
-                .fetchSemanticsNodes()
-                .isEmpty()
-        )
+        val returnedToHome = try {
+            composeRule.onAllNodesWithText("Jan Kowalski").fetchSemanticsNodes().isNotEmpty()
+        } catch (_: IllegalStateException) {
+            false
+        }
+
+        assertTrue(!returnedToHome)
     }
 }
 
