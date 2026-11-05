@@ -4,10 +4,10 @@ import androidx.lifecycle.ViewModel
 import com.example.map.domain.model.AuthTokens
 import com.example.map.domain.usecase.AuthSession
 import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import javax.inject.Inject
 
 data class AuthUiState(
     val isAuthenticated: Boolean

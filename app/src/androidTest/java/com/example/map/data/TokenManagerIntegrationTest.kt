@@ -1,4 +1,3 @@
-
 package com.example.map.data
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
