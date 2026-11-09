@@ -9,7 +9,11 @@ import androidx.compose.ui.test.performClick
 import androidx.test.espresso.Espresso
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.example.map.domain.model.AuthTokens
+import com.example.map.domain.model.EmailChangeResult
+import com.example.map.domain.repository.AccountRepository
+import com.example.map.domain.repository.ProfileStorage
 import com.example.map.domain.repository.TokenStorage
+import com.example.map.domain.usecase.AccountSession
 import com.example.map.domain.usecase.AuthSession
 import com.example.map.ui.navigation.AppNavigation
 import com.example.map.ui.viewmodels.AuthViewModel
@@ -37,7 +41,13 @@ class MainActivityLogoutTest {
                 refreshToken = "refresh-test-token"
             )
         )
-        authViewModel = AuthViewModel(AuthSession(tokenStorage))
+        authViewModel = AuthViewModel(
+            authSession = AuthSession(tokenStorage),
+            accountSession = AccountSession(
+                accountRepository = FakeAccountRepository(),
+                profileStorage = FakeProfileStorage()
+            )
+        )
 
         composeRule.setContent {
             AppNavigation(viewModel = authViewModel)
@@ -82,5 +92,27 @@ private class FakeTokenStorage(
 
     override fun clearTokens() {
         tokens = null
+    }
+}
+
+private class FakeAccountRepository : AccountRepository {
+    override suspend fun requestEmailChange(newEmail: String): EmailChangeResult =
+        EmailChangeResult.Success
+
+    override suspend fun confirmEmailChange(code: String): EmailChangeResult =
+        EmailChangeResult.Success
+}
+
+private class FakeProfileStorage : ProfileStorage {
+    private var email: String? = null
+
+    override fun getEmail(): String? = email
+
+    override fun saveEmail(email: String) {
+        this.email = email
+    }
+
+    override fun clear() {
+        email = null
     }
 }

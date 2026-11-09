@@ -8,15 +8,22 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.map.ui.screens.ChangeEmailScreen
 import com.example.map.ui.screens.HomeScreen
 import com.example.map.ui.screens.LoginScreen
+import com.example.map.ui.screens.SettingsScreen
 import com.example.map.ui.viewmodels.AuthViewModel
+import com.example.map.ui.viewmodels.ChangeEmailViewModel
+import com.example.map.ui.viewmodels.SettingsViewModel
 
 private const val LOGIN_ROUTE = "login"
 private const val HOME_ROUTE = "home"
+private const val SETTINGS_ROUTE = "settings"
+private const val CHANGE_EMAIL_ROUTE = "change_email"
 
 @Composable
 fun AppNavigation(
@@ -54,8 +61,8 @@ fun AppNavigation(
         ) {
             composable(LOGIN_ROUTE) {
                 LoginScreen(
-                    onLoginClick = { _, _, _ ->
-                        viewModel.onDemoLogin()
+                    onLoginClick = { email, _, _ ->
+                        viewModel.onDemoLogin(email)
                     }
                 )
             }
@@ -64,6 +71,44 @@ fun AppNavigation(
                 HomeScreen(
                     onLogoutClick = {
                         viewModel.logout()
+                    },
+                    onSettingsClick = {
+                        navController.navigate(SETTINGS_ROUTE)
+                    }
+                )
+            }
+
+            composable(SETTINGS_ROUTE) {
+                val settingsViewModel: SettingsViewModel = hiltViewModel()
+                val email by settingsViewModel.email.collectAsState()
+
+                SettingsScreen(
+                    email = email,
+                    onBackClick = {
+                        navController.popBackStack()
+                    },
+                    onChangeEmailClick = {
+                        navController.navigate(CHANGE_EMAIL_ROUTE)
+                    }
+                )
+            }
+
+            composable(CHANGE_EMAIL_ROUTE) {
+                val changeEmailViewModel: ChangeEmailViewModel = hiltViewModel()
+                val changeEmailState by changeEmailViewModel.uiState.collectAsState()
+
+                ChangeEmailScreen(
+                    uiState = changeEmailState,
+                    onNewEmailChange = changeEmailViewModel::onNewEmailChange,
+                    onCodeChange = changeEmailViewModel::onCodeChange,
+                    onSubmitEmail = changeEmailViewModel::submitNewEmail,
+                    onSubmitCode = changeEmailViewModel::submitCode,
+                    onBackToEmail = changeEmailViewModel::backToEmailEntry,
+                    onDone = {
+                        navController.popBackStack(SETTINGS_ROUTE, inclusive = false)
+                    },
+                    onBackClick = {
+                        navController.popBackStack()
                     }
                 )
             }
