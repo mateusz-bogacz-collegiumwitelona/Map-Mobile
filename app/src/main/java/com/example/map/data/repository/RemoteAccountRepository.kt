@@ -4,6 +4,8 @@ import com.example.map.data.remote.dto.ApiResultDto
 import com.example.map.data.remote.dto.ChangeEmailRequestDto
 import com.example.map.data.remote.dto.ConfirmEmailChangeRequestDto
 import com.example.map.data.remote.service.UserApiService
+import com.example.map.domain.model.AccountDeletionError
+import com.example.map.domain.model.AccountDeletionResult
 import com.example.map.domain.model.EmailChangeError
 import com.example.map.domain.model.EmailChangeResult
 import com.example.map.domain.repository.AccountRepository
@@ -26,6 +28,11 @@ class RemoteAccountRepository @Inject constructor(
     override suspend fun confirmEmailChange(code: String): EmailChangeResult =
         execute {
             userApiService.confirmEmailChange(ConfirmEmailChangeRequestDto(code))
+        }
+
+    override suspend fun deleteAccount(): AccountDeletionResult =
+        executeDeletion {
+            userApiService.deleteAccount()
         }
 
     private suspend fun execute(
@@ -56,12 +63,55 @@ class RemoteAccountRepository @Inject constructor(
         }
     }
 
+    private suspend fun executeDeletion(
+        request: suspend () -> Response<ApiResultDto>
+    ): AccountDeletionResult {
+        return try {
+            val response = request()
+            val body = response.body()
+
+            if (response.isSuccessful && body?.isSuccess == true) {
+                AccountDeletionResult.Success
+            } else {
+                val errorBody = body ?: parseErrorBody(response)
+                AccountDeletionResult.Failure(
+                    error = mapDeletionError(response.code(), errorBody?.errorCode),
+                    message = errorBody?.message
+                )
+            }
+        } catch (exception: CancellationException) {
+            throw exception
+        } catch (_: IOException) {
+            AccountDeletionResult.Failure(AccountDeletionError.NETWORK)
+        } catch (exception: Exception) {
+            AccountDeletionResult.Failure(
+                error = AccountDeletionError.UNKNOWN,
+                message = exception.message
+            )
+        }
+    }
+
     private fun parseErrorBody(response: Response<ApiResultDto>): ApiResultDto? {
         val rawBody = response.errorBody()?.string() ?: return null
         return runCatching {
             gson.fromJson(rawBody, ApiResultDto::class.java)
         }.getOrNull()
     }
+
+    private fun mapDeletionError(
+        statusCode: Int,
+        errorCode: String?
+    ): AccountDeletionError =
+        when (errorCode) {
+            "COMMON_002" -> AccountDeletionError.NOT_FOUND
+            "COMMON_005" -> AccountDeletionError.RATE_LIMITED
+            else -> when (statusCode) {
+                401, 403 -> AccountDeletionError.UNAUTHORIZED
+                404 -> AccountDeletionError.NOT_FOUND
+                429 -> AccountDeletionError.RATE_LIMITED
+                else -> AccountDeletionError.UNKNOWN
+            }
+        }
 
     private fun mapError(statusCode: Int, errorCode: String?): EmailChangeError =
         when (errorCode) {

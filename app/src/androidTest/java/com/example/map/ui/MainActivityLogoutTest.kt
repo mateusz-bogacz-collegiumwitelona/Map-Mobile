@@ -8,6 +8,7 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.espresso.Espresso
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.example.map.domain.model.AccountDeletionResult
 import com.example.map.domain.model.AuthTokens
 import com.example.map.domain.model.EmailChangeResult
 import com.example.map.domain.repository.AccountRepository
@@ -101,6 +102,9 @@ private class FakeAccountRepository : AccountRepository {
 
     override suspend fun confirmEmailChange(code: String): EmailChangeResult =
         EmailChangeResult.Success
+
+    override suspend fun deleteAccount(): AccountDeletionResult =
+        AccountDeletionResult.Success
 }
 
 private class FakeProfileStorage : ProfileStorage {

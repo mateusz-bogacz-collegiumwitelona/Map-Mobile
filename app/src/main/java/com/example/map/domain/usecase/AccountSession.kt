@@ -1,5 +1,6 @@
 package com.example.map.domain.usecase
 
+import com.example.map.domain.model.AccountDeletionResult
 import com.example.map.domain.model.EmailChangeResult
 import com.example.map.domain.repository.AccountRepository
 import com.example.map.domain.repository.ProfileStorage
@@ -36,6 +37,9 @@ class AccountSession(
 
         return result
     }
+
+    suspend fun deleteAccount(): AccountDeletionResult =
+        accountRepository.deleteAccount()
 
     fun clear() {
         profileStorage.clear()

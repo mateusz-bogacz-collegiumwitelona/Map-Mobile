@@ -43,7 +43,7 @@ fun AppNavigation(
 
         if (currentRoute != null && currentRoute != destination) {
             navController.navigate(destination) {
-                popUpTo(currentRoute) {
+                popUpTo(navController.graph.id) {
                     inclusive = true
                 }
                 launchSingleTop = true
@@ -80,16 +80,25 @@ fun AppNavigation(
 
             composable(SETTINGS_ROUTE) {
                 val settingsViewModel: SettingsViewModel = hiltViewModel()
-                val email by settingsViewModel.email.collectAsState()
+                val settingsState by settingsViewModel.uiState.collectAsState()
+
+                LaunchedEffect(settingsState.isAccountDeleted) {
+                    if (settingsState.isAccountDeleted) {
+                        viewModel.onAccountDeleted()
+                    }
+                }
 
                 SettingsScreen(
-                    email = email,
+                    uiState = settingsState,
                     onBackClick = {
                         navController.popBackStack()
                     },
                     onChangeEmailClick = {
                         navController.navigate(CHANGE_EMAIL_ROUTE)
-                    }
+                    },
+                    onDeleteAccountClick = settingsViewModel::showDeleteDialog,
+                    onDismissDeleteDialog = settingsViewModel::dismissDeleteDialog,
+                    onConfirmDeleteAccount = settingsViewModel::deleteAccount
                 )
             }
 

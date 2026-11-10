@@ -5,6 +5,7 @@ import com.example.map.data.remote.dto.ChangeEmailRequestDto
 import com.example.map.data.remote.dto.ConfirmEmailChangeRequestDto
 import retrofit2.Response
 import retrofit2.http.Body
+import retrofit2.http.DELETE
 import retrofit2.http.POST
 
 interface UserApiService {
@@ -18,4 +19,7 @@ interface UserApiService {
     suspend fun confirmEmailChange(
         @Body request: ConfirmEmailChangeRequestDto
     ): Response<ApiResultDto>
+
+    @DELETE("api/user")
+    suspend fun deleteAccount(): Response<ApiResultDto>
 }

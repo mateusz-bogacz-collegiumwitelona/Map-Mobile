@@ -37,6 +37,14 @@ class AuthViewModel @Inject constructor(
     }
 
     fun logout() {
+        clearSession()
+    }
+
+    fun onAccountDeleted() {
+        clearSession()
+    }
+
+    private fun clearSession() {
         authSession.logout()
         accountSession.clear()
         _uiState.update { it.copy(isAuthenticated = false) }
