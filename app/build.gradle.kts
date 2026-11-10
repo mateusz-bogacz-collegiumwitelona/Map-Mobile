@@ -1,6 +1,7 @@
 import java.net.URI
 import java.net.URISyntaxException
 import java.util.Properties
+import org.gradle.api.tasks.testing.AbstractTestTask
 
 plugins {
     alias(libs.plugins.android.application)
@@ -82,7 +83,7 @@ android {
         versionCode = 1
         versionName = "1.0"
 
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunner = "com.example.map.CustomTestRunner"
     }
 
     flavorDimensions += "environment"
