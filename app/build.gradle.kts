@@ -1,4 +1,3 @@
-import java.io.StringReader
 import java.net.URI
 import java.net.URISyntaxException
 import java.util.Properties
@@ -11,12 +10,13 @@ plugins {
     alias(libs.plugins.ksp)
 }
 
-val localPropertiesText = providers.fileContents(
-    rootProject.layout.projectDirectory.file("local.properties")
-).asText.get()
+val localProperties = Properties()
+val localPropertiesFile = rootProject.file("local.properties")
 
-val localProperties = Properties().apply {
-    StringReader(localPropertiesText).use { load(it) }
+if (localPropertiesFile.isFile) {
+    localPropertiesFile.inputStream().use { input ->
+        localProperties.load(input)
+    }
 }
 
 fun readApiBaseUrl(propertyName: String): String {
