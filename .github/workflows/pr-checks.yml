@@ -106,7 +106,7 @@ jobs:
           emulator-options: -no-window -no-snapshot -noaudio -no-boot-anim -camera-back none -no-metrics -gpu swiftshader_indirect
           disable-animations: true
           channel: stable
-          script: ./gradlew connectedDevelopmentDebugAndroidTest --no-daemon --stacktrace
+          script: ./gradlew connectedDevelopmentDebugAndroidTest --no-daemon --info --stacktrace
 
       - name: Publish Integration Test Results
         uses: EnricoMi/publish-unit-test-result-action@v2
