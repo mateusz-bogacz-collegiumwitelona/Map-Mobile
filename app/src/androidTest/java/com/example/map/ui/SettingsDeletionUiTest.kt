@@ -38,24 +38,34 @@ class SettingsDeletionUiTest {
     private lateinit var repository: FakeAccountRepository
     private lateinit var profileStorage: FakeProfileStorage
     private lateinit var viewModel: SettingsViewModel
+    private var changeEmailClicks = 0
 
     @Before
     fun setUp() {
         repository = FakeAccountRepository()
         profileStorage = FakeProfileStorage("user@example.com")
         viewModel = SettingsViewModel(AccountSession(repository, profileStorage))
+        changeEmailClicks = 0
 
         composeRule.setContent {
             val uiState by viewModel.uiState.collectAsState()
             SettingsScreen(
                 uiState = uiState,
                 onBackClick = {},
-                onChangeEmailClick = {},
+                onChangeEmailClick = { changeEmailClicks++ },
                 onDeleteAccountClick = viewModel::showDeleteDialog,
                 onDismissDeleteDialog = viewModel::dismissDeleteDialog,
                 onConfirmDeleteAccount = viewModel::deleteAccount
             )
         }
+    }
+
+    @Test
+    fun changeEmailEntryIsAvailableAndInvokesCallback() {
+        composeRule.onNodeWithText("Zmień adres e-mail").assertIsDisplayed()
+        composeRule.onNodeWithTag("settings_change_email_row").performClick()
+
+        assertEquals(1, changeEmailClicks)
     }
 
     @Test
@@ -109,6 +119,27 @@ class SettingsDeletionUiTest {
             .assertIsDisplayed()
         assertTrue(viewModel.uiState.value.isDeleteDialogVisible)
         assertFalse(viewModel.uiState.value.isAccountDeleted)
+    }
+
+    @Test
+    fun failureAllowsRetryFromTheOpenDialog() {
+        repository.deletionResult =
+            AccountDeletionResult.Failure(AccountDeletionError.NETWORK)
+
+        composeRule.onNodeWithTag("settings_delete_row").performClick()
+        composeRule.onNodeWithTag("settings_delete_confirm").performClick()
+        composeRule.waitUntil(timeoutMillis = 5_000) {
+            viewModel.uiState.value.deleteErrorMessage != null
+        }
+
+        repository.deletionResult = AccountDeletionResult.Success
+        composeRule.onNodeWithTag("settings_delete_confirm").performClick()
+        composeRule.waitUntil(timeoutMillis = 5_000) {
+            viewModel.uiState.value.isAccountDeleted
+        }
+
+        assertEquals(2, repository.deletionCalls)
+        composeRule.onAllNodesWithText("Usunąć konto?").assertCountEquals(0)
     }
 
     @Test

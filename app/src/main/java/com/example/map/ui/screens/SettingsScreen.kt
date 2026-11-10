@@ -73,6 +73,7 @@ fun SettingsScreen(
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(12.dp))
                     .background(SurfaceGray)
+                    .testTag("settings_change_email_row")
                     .clickable(onClick = onChangeEmailClick)
                     .padding(16.dp),
                 verticalAlignment = Alignment.CenterVertically,

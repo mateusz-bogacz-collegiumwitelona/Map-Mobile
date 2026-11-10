@@ -13,6 +13,9 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+private const val MAX_EMAIL_LENGTH = 256
+private const val CODE_LENGTH = 6
+
 enum class ChangeEmailStep {
     EMAIL_ENTRY,
     CODE_VERIFICATION,
@@ -33,6 +36,8 @@ data class ChangeEmailUiState(
     val emailValidationError: String?
         get() = when {
             newEmail.isBlank() -> null
+            normalizedNewEmail.length > MAX_EMAIL_LENGTH ->
+                "Adres e-mail może mieć maksymalnie $MAX_EMAIL_LENGTH znaków."
             !EmailValidator.isValid(newEmail) -> "Podaj prawidłowy adres e-mail."
             normalizedNewEmail.equals(currentEmail.trim(), ignoreCase = true) ->
                 "Nowy adres e-mail musi różnić się od obecnego."
@@ -49,10 +54,6 @@ data class ChangeEmailUiState(
         get() = !isSubmitting &&
             code.length == CODE_LENGTH &&
             code.all { it.isDigit() }
-
-    private companion object {
-        const val CODE_LENGTH = 6
-    }
 }
 
 @HiltViewModel
@@ -76,7 +77,7 @@ class ChangeEmailViewModel @Inject constructor(
     fun onNewEmailChange(value: String) {
         _uiState.update {
             it.copy(
-                newEmail = value.take(MAX_EMAIL_LENGTH),
+                newEmail = value,
                 errorMessage = null
             )
         }
@@ -91,9 +92,9 @@ class ChangeEmailViewModel @Inject constructor(
         val state = _uiState.value
         if (!state.canSubmitEmail) return
 
-        viewModelScope.launch {
-            _uiState.update { it.copy(isSubmitting = true, errorMessage = null) }
+        _uiState.update { it.copy(isSubmitting = true, errorMessage = null) }
 
+        viewModelScope.launch {
             when (val result = accountSession.requestEmailChange(state.normalizedNewEmail)) {
                 is EmailChangeResult.Success -> {
                     _uiState.update {
@@ -120,9 +121,9 @@ class ChangeEmailViewModel @Inject constructor(
         val state = _uiState.value
         if (!state.canSubmitCode) return
 
-        viewModelScope.launch {
-            _uiState.update { it.copy(isSubmitting = true, errorMessage = null) }
+        _uiState.update { it.copy(isSubmitting = true, errorMessage = null) }
 
+        viewModelScope.launch {
             val result = accountSession.confirmEmailChange(
                 code = state.code,
                 newEmail = state.normalizedNewEmail
@@ -178,9 +179,4 @@ class ChangeEmailViewModel @Inject constructor(
             EmailChangeError.UNKNOWN ->
                 message ?: "Nie udało się zmienić adresu e-mail."
         }
-
-    private companion object {
-        const val MAX_EMAIL_LENGTH = 256
-        const val CODE_LENGTH = 6
-    }
 }

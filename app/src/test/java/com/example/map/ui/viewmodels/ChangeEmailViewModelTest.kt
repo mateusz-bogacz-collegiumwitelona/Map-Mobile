@@ -17,7 +17,6 @@ import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
-import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -76,14 +75,18 @@ class ChangeEmailViewModelTest {
     }
 
     @Test
-    fun overlyLongEmailIsRejectedClientSide() = runTest(dispatcher) {
+    fun overlyLongEmailIsRejectedInsteadOfBeingTruncated() = runTest(dispatcher) {
         advanceUntilIdle()
+        val validAt256Characters = "a".repeat(250) + "@x.com"
 
-        viewModel.onNewEmailChange("a".repeat(300) + "@example.com")
+        viewModel.onNewEmailChange(validAt256Characters + "b")
 
         val state = viewModel.uiState.value
-        assertEquals(256, state.newEmail.length)
-        assertNotNull(state.emailValidationError)
+        assertEquals(257, state.newEmail.length)
+        assertEquals(
+            "Adres e-mail może mieć maksymalnie 256 znaków.",
+            state.emailValidationError
+        )
         assertFalse(state.canSubmitEmail)
     }
 
@@ -223,6 +226,43 @@ class ChangeEmailViewModelTest {
             "Brak połączenia z internetem. Spróbuj ponownie.",
             viewModel.uiState.value.errorMessage
         )
+    }
+
+    @Test
+    fun remainingBackendFailuresShowInlineMessages() = runTest(dispatcher) {
+        advanceUntilIdle()
+        val cases = listOf(
+            EmailChangeError.EMAIL_INVALID to "Podaj prawidłowy adres e-mail.",
+            EmailChangeError.EMAIL_UNCHANGED to
+                "Nowy adres e-mail musi różnić się od obecnego.",
+            EmailChangeError.ATTEMPTS_EXCEEDED to
+                "Przekroczono liczbę prób. Wróć i wyślij nowy kod.",
+            EmailChangeError.RATE_LIMITED to
+                "Zbyt wiele żądań. Odczekaj chwilę i spróbuj ponownie.",
+            EmailChangeError.UNAUTHORIZED to "Sesja wygasła. Zaloguj się ponownie."
+        )
+
+        cases.forEach { (error, expectedMessage) ->
+            repository.requestResult = EmailChangeResult.Failure(error)
+            viewModel.onNewEmailChange("new@example.com")
+            viewModel.submitNewEmail()
+            advanceUntilIdle()
+
+            assertEquals(expectedMessage, viewModel.uiState.value.errorMessage)
+        }
+    }
+
+    @Test
+    fun unknownFailureUsesBackendMessage() = runTest(dispatcher) {
+        advanceUntilIdle()
+        repository.requestResult =
+            EmailChangeResult.Failure(EmailChangeError.UNKNOWN, "Server error")
+
+        viewModel.onNewEmailChange("new@example.com")
+        viewModel.submitNewEmail()
+        advanceUntilIdle()
+
+        assertEquals("Server error", viewModel.uiState.value.errorMessage)
     }
 
     @Test

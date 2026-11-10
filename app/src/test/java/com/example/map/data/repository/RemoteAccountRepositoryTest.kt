@@ -76,6 +76,85 @@ class RemoteAccountRepositoryTest {
     }
 
     @Test
+    fun mapsInvalidEmailErrorCode() = runTest {
+        service.requestResponse = errorResponse(
+            status = 400,
+            errorCode = "USR_004",
+            message = "Invalid email"
+        )
+
+        assertEquals(
+            EmailChangeResult.Failure(EmailChangeError.EMAIL_INVALID, "Invalid email"),
+            repository.requestEmailChange("new@example.com")
+        )
+    }
+
+    @Test
+    fun mapsUnchangedEmailErrorCode() = runTest {
+        service.requestResponse = errorResponse(
+            status = 400,
+            errorCode = "USR_006",
+            message = "Email unchanged"
+        )
+
+        assertEquals(
+            EmailChangeResult.Failure(EmailChangeError.EMAIL_UNCHANGED, "Email unchanged"),
+            repository.requestEmailChange("new@example.com")
+        )
+    }
+
+    @Test
+    fun mapsAttemptsExceededErrorCode() = runTest {
+        service.confirmResponse = errorResponse(
+            status = 400,
+            errorCode = "VER_003",
+            message = "Attempts exceeded"
+        )
+
+        assertEquals(
+            EmailChangeResult.Failure(
+                EmailChangeError.ATTEMPTS_EXCEEDED,
+                "Attempts exceeded"
+            ),
+            repository.confirmEmailChange("123456")
+        )
+    }
+
+    @Test
+    fun mapsRateLimitErrorCode() = runTest {
+        service.requestResponse = errorResponse(
+            status = 429,
+            errorCode = "COMMON_005",
+            message = "Too many requests"
+        )
+
+        assertEquals(
+            EmailChangeResult.Failure(EmailChangeError.RATE_LIMITED, "Too many requests"),
+            repository.requestEmailChange("new@example.com")
+        )
+    }
+
+    @Test
+    fun mapsRateLimitStatusWithoutErrorCode() = runTest {
+        service.requestResponse = errorResponse(status = 429)
+
+        assertEquals(
+            EmailChangeResult.Failure(EmailChangeError.RATE_LIMITED),
+            repository.requestEmailChange("new@example.com")
+        )
+    }
+
+    @Test
+    fun mapsUnauthorizedStatusForEmailChange() = runTest {
+        service.requestResponse = errorResponse(status = 403)
+
+        assertEquals(
+            EmailChangeResult.Failure(EmailChangeError.UNAUTHORIZED),
+            repository.requestEmailChange("new@example.com")
+        )
+    }
+
+    @Test
     fun mapsNetworkFailureForEmailChange() = runTest {
         service.requestException = IOException("offline")
 
@@ -135,6 +214,20 @@ class RemoteAccountRepositoryTest {
 
         assertEquals(
             AccountDeletionResult.Failure(AccountDeletionError.NETWORK),
+            repository.deleteAccount()
+        )
+    }
+
+    @Test
+    fun mapsDeletionUnknownStatus() = runTest {
+        service.deleteResponse = errorResponse(
+            status = 500,
+            errorCode = "SERVER_500",
+            message = "Server error"
+        )
+
+        assertEquals(
+            AccountDeletionResult.Failure(AccountDeletionError.UNKNOWN, "Server error"),
             repository.deleteAccount()
         )
     }

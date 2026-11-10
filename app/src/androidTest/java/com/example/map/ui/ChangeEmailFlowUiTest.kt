@@ -67,6 +67,16 @@ class ChangeEmailFlowUiTest {
     }
 
     @Test
+    fun overlyLongEmailShowsLengthErrorAndDisablesSubmit() {
+        composeRule.onNode(hasSetTextAction())
+            .performTextInput("a".repeat(250) + "@x.com" + "b")
+
+        composeRule.onNodeWithText("Adres e-mail może mieć maksymalnie 256 znaków.")
+            .assertIsDisplayed()
+        composeRule.onNodeWithTag("change_email_submit_email").assertIsNotEnabled()
+    }
+
+    @Test
     fun emailMatchingCurrentAddressShowsErrorAndDisablesSubmit() {
         composeRule.onNode(hasSetTextAction())
             .performTextInput(" CURRENT@example.com ")
