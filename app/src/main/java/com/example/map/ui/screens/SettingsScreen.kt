@@ -31,6 +31,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.map.ui.components.Header
@@ -109,6 +110,7 @@ fun SettingsScreen(
                         color = DangerRed.copy(alpha = 0.6f),
                         shape = RoundedCornerShape(12.dp)
                     )
+                    .testTag("settings_delete_row")
                     .clickable(
                         enabled = !uiState.isDeletingAccount,
                         onClick = onDeleteAccountClick
@@ -192,6 +194,7 @@ private fun DeleteAccountDialog(
         confirmButton = {
             Button(
                 onClick = onConfirm,
+                modifier = Modifier.testTag("settings_delete_confirm"),
                 enabled = !isDeleting,
                 colors = ButtonDefaults.buttonColors(
                     containerColor = DangerRed,
@@ -215,6 +218,7 @@ private fun DeleteAccountDialog(
         dismissButton = {
             TextButton(
                 onClick = onDismiss,
+                modifier = Modifier.testTag("settings_delete_cancel"),
                 enabled = !isDeleting,
                 colors = ButtonDefaults.textButtonColors(
                     contentColor = TextGray,

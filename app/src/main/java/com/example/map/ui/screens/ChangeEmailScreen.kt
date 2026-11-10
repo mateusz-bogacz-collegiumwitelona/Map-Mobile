@@ -24,6 +24,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -129,7 +130,9 @@ private fun EmailEntryStep(
     PrimaryButton(
         text = "Wyślij kod weryfikacyjny",
         onClick = onSubmitEmail,
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .testTag("change_email_submit_email"),
         enabled = uiState.canSubmitEmail,
         isLoading = uiState.isSubmitting
     )
@@ -169,7 +172,9 @@ private fun VerificationStep(
     PrimaryButton(
         text = "Potwierdź zmianę",
         onClick = onSubmitCode,
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .testTag("change_email_submit_code"),
         enabled = uiState.canSubmitCode,
         isLoading = uiState.isSubmitting
     )

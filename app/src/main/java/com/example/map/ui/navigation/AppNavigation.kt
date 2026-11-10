@@ -28,7 +28,9 @@ private const val CHANGE_EMAIL_ROUTE = "change_email"
 @Composable
 fun AppNavigation(
     viewModel: AuthViewModel,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    settingsViewModelFactory: @Composable () -> SettingsViewModel = { hiltViewModel() },
+    changeEmailViewModelFactory: @Composable () -> ChangeEmailViewModel = { hiltViewModel() }
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val navController = rememberNavController()
@@ -79,7 +81,7 @@ fun AppNavigation(
             }
 
             composable(SETTINGS_ROUTE) {
-                val settingsViewModel: SettingsViewModel = hiltViewModel()
+                val settingsViewModel = settingsViewModelFactory()
                 val settingsState by settingsViewModel.uiState.collectAsState()
 
                 LaunchedEffect(settingsState.isAccountDeleted) {
@@ -103,7 +105,7 @@ fun AppNavigation(
             }
 
             composable(CHANGE_EMAIL_ROUTE) {
-                val changeEmailViewModel: ChangeEmailViewModel = hiltViewModel()
+                val changeEmailViewModel = changeEmailViewModelFactory()
                 val changeEmailState by changeEmailViewModel.uiState.collectAsState()
 
                 ChangeEmailScreen(
