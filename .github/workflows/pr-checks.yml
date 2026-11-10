@@ -112,7 +112,7 @@ jobs:
         if: always()
         run: |
             echo "=== RAPORT ==="
-            cat app/build/outputs/androidTest-results/**/TEST-*.xml || true
+            find app/build -name "*.xml" -path "*androidTest-results*" -exec cat {} + || true
 
       - name: Publish Integration Test Results
         uses: EnricoMi/publish-unit-test-result-action@v2
