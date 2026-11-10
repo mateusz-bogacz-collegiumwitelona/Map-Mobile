@@ -6,7 +6,9 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ExitToApp
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ExitToApp
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
@@ -22,6 +24,8 @@ import com.example.map.ui.theme.SurfaceGray
 fun Header(
     title: String,
     modifier: Modifier = Modifier,
+    onBackClick: (() -> Unit)? = null,
+    onSettingsClick: (() -> Unit)? = null,
     onLogoutClick: (() -> Unit)? = null
 ) {
     Row(
@@ -32,19 +36,43 @@ fun Header(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        Text(
-            text = title,
-            color = Color.White,
-            fontSize = 20.sp
-        )
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            if (onBackClick != null) {
+                IconButton(onClick = onBackClick) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = "Wróć",
+                        tint = Color.White
+                    )
+                }
+            }
 
-        if (onLogoutClick != null) {
-            IconButton(onClick = onLogoutClick) {
-                Icon(
-                    imageVector = Icons.Default.ExitToApp,
-                    contentDescription = "Wyloguj",
-                    tint = Color.White
-                )
+            Text(
+                text = title,
+                color = Color.White,
+                fontSize = 20.sp
+            )
+        }
+
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            if (onSettingsClick != null) {
+                IconButton(onClick = onSettingsClick) {
+                    Icon(
+                        imageVector = Icons.Default.Settings,
+                        contentDescription = "Ustawienia",
+                        tint = Color.White
+                    )
+                }
+            }
+
+            if (onLogoutClick != null) {
+                IconButton(onClick = onLogoutClick) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ExitToApp,
+                        contentDescription = "Wyloguj",
+                        tint = Color.White
+                    )
+                }
             }
         }
     }
