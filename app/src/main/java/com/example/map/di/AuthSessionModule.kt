@@ -1,5 +1,6 @@
 package com.example.map.di
 
+import com.example.map.domain.repository.AuthRepository
 import com.example.map.domain.repository.TokenStorage
 import com.example.map.domain.usecase.AuthSession
 import dagger.Module
@@ -14,6 +15,8 @@ object AuthSessionModule {
 
     @Provides
     @Singleton
-    fun provideAuthSession(tokenStorage: TokenStorage): AuthSession =
-        AuthSession(tokenStorage)
+    fun provideAuthSession(
+        tokenStorage: TokenStorage,
+        authRepository: AuthRepository
+    ): AuthSession = AuthSession(tokenStorage, authRepository)
 }

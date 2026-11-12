@@ -19,6 +19,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import retrofit2.Retrofit
+import com.example.map.data.remote.service.AuthApi
 
 @HiltAndroidTest
 @RunWith(AndroidJUnit4::class)
@@ -54,6 +55,7 @@ class NetworkInjectionTest {
             dependencies.okHttpClient(),
             dependencies.retrofit().callFactory()
         )
+        assertNotNull(dependencies.authApi())
     }
 }
 
@@ -63,4 +65,5 @@ interface NetworkTestEntryPoint {
     fun json(): Json
     fun okHttpClient(): OkHttpClient
     fun retrofit(): Retrofit
+    fun authApi(): AuthApi
 }

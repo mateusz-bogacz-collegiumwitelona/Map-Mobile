@@ -14,7 +14,7 @@ MAP_API_BASE_URL_PRODUCTION=https://api.example.invalid/
 ```
 5. Wybierz konfigurację `app` i kliknij **Run**.
 
-##Aby zbudować wariant development i production:
+## Aby zbudować wariant development i production:
 
 ```powershell
 .\gradlew.bat :app:assembleDevelopmentDebug :app:assembleProductionRelease

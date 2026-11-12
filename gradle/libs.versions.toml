@@ -43,6 +43,7 @@ okhttpLoggingInterceptor = { module = "com.squareup.okhttp3:logging-interceptor"
 okhttpMockwebserver = { module = "com.squareup.okhttp3:mockwebserver", version.ref = "okhttp" }
 kotlinxSerializationJson = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerialization" }
 hiltAndroidTesting = { module = "com.google.dagger:hilt-android-testing", version.ref = "hilt" }
+androidx-lifecycle-viewmodel-ktx = { module = "androidx.lifecycle:lifecycle-viewmodel-ktx", version.ref = "lifecycleRuntimeKtx" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
