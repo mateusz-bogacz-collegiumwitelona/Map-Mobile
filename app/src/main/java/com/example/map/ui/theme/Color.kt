@@ -6,3 +6,5 @@ val BackgroundDark = Color(0xFF202020)      // 1 - background
 val TextGray = Color(0xFF909090)            // 2 - text 2
 val ButtonLight = Color(0xFFDDDDDD)         // 3 - icons + buttons
 val SurfaceGray = Color(0xFF404040)         // 4 - gray
+val ErrorRed = Color(0xFFE57373)            // 5 - error text/border
+val DangerRed = Color(0xFFCF6679)           // 6 - destructive actions
