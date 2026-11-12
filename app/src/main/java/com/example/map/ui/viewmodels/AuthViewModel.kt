@@ -21,9 +21,20 @@ class AuthViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(
-        AuthUiState(isAuthenticated = authSession.hasSavedSession())
+        AuthUiState(
+            isAuthenticated = authSession.hasSavedSession(),
+            profile = accountSession.profile.value
+        )
     )
     val uiState = _uiState.asStateFlow()
+
+    init {
+        viewModelScope.launch {
+            accountSession.profile.collect { profile ->
+                _uiState.update { it.copy(profile = profile) }
+            }
+        }
+    }
 
     fun login(email: String, password: String) {
         if (_uiState.value.isLoading) return
@@ -64,7 +75,16 @@ class AuthViewModel @Inject constructor(
             try {
                 authSession.login(normalizedEmail, password)
                 accountSession.rememberEmail(normalizedEmail)
-                _uiState.value = AuthUiState(isAuthenticated = true)
+                _uiState.update {
+                    it.copy(
+                        isAuthenticated = true,
+                        isLoading = false,
+                        errorMessage = null,
+                        profile = accountSession.profile.value
+                    )
+                }
+
+                hydrateProfile()
             } catch (cancelled: CancellationException) {
                 throw cancelled
             } catch (error: AuthException) {
@@ -81,6 +101,18 @@ class AuthViewModel @Inject constructor(
                         errorMessage = "Nie udało się zalogować. Spróbuj ponownie."
                     )
                 }
+            }
+        }
+    }
+
+    private fun hydrateProfile() {
+        viewModelScope.launch {
+            try {
+                accountSession.refreshProfile()
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (_: Exception) {
+                // Nieudane pobranie profilu nie może blokować logowania ani nawigacji.
             }
         }
     }

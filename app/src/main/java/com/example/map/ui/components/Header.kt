@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -25,6 +26,7 @@ fun Header(
     title: String,
     modifier: Modifier = Modifier,
     onBackClick: (() -> Unit)? = null,
+    onProfileClick: (() -> Unit)? = null,
     onSettingsClick: (() -> Unit)? = null,
     onLogoutClick: (() -> Unit)? = null
 ) {
@@ -55,6 +57,16 @@ fun Header(
         }
 
         Row(verticalAlignment = Alignment.CenterVertically) {
+            if (onProfileClick != null) {
+                IconButton(onClick = onProfileClick) {
+                    Icon(
+                        imageVector = Icons.Default.Person,
+                        contentDescription = "Profil i prywatność",
+                        tint = Color.White
+                    )
+                }
+            }
+
             if (onSettingsClick != null) {
                 IconButton(onClick = onSettingsClick) {
                     Icon(

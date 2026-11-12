@@ -120,7 +120,12 @@ class AuthenticationUiTest {
         var logoutCalled = false
 
         composeRule.setContent {
-            HomeScreen(onLogoutClick = { logoutCalled = true })
+            HomeScreen(
+                profileName = "Jan Kowalski",
+                profileInitials = "JK",
+                onProfileClick = {},
+                onLogoutClick = { logoutCalled = true }
+            )
         }
 
         composeRule.onNodeWithContentDescription("Wyloguj").assertIsDisplayed()
