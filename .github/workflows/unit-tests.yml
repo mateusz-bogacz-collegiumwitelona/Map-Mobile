@@ -15,6 +15,10 @@ permissions:
   issues: read
   pull-requests: write
 
+env:
+  MAP_API_BASE_URL_DEVELOPMENT: ${{ vars.MAP_API_BASE_URL_DEVELOPMENT }}
+  MAP_API_BASE_URL_PRODUCTION: ${{ vars.MAP_API_BASE_URL_PRODUCTION }}
+
 jobs:
   test:
     runs-on: ubuntu-latest

@@ -8,11 +8,13 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.espresso.Espresso
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.example.map.domain.model.AuthenticatedAccount
 import com.example.map.domain.model.AuthTokens
-import com.example.map.domain.repository.TokenStorage
+import com.example.map.domain.repository.AuthRepository
 import com.example.map.domain.usecase.AuthSession
 import com.example.map.ui.navigation.AppNavigation
 import com.example.map.ui.viewmodels.AuthViewModel
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -29,15 +31,51 @@ class MainActivityLogoutTest {
     private lateinit var tokenStorage: FakeTokenStorage
     private lateinit var authViewModel: AuthViewModel
 
+    private var remotelyLoggedOutAccessToken: String? = null
+    private var remotelyLoggedOutRefreshToken: String? = null
+
     @Before
     fun setUp() {
+        remotelyLoggedOutAccessToken = null
+        remotelyLoggedOutRefreshToken = null
+
         tokenStorage = FakeTokenStorage(
             initialTokens = AuthTokens(
                 accessToken = "access-test-token",
                 refreshToken = "refresh-test-token"
             )
         )
-        authViewModel = AuthViewModel(AuthSession(tokenStorage))
+
+        val authRepository = object : AuthRepository {
+            override suspend fun login(
+                email: String,
+                password: String
+            ): AuthenticatedAccount {
+                error("Login nie jest używany w tym teście.")
+            }
+
+            override suspend fun refresh(
+                refreshToken: String
+            ): AuthenticatedAccount = AuthenticatedAccount(
+                tokens = AuthTokens(
+                    accessToken = "access-refreshed",
+                    refreshToken = "refresh-refreshed"
+                ),
+                roles = listOf("User")
+            )
+
+            override suspend fun logout(
+                accessToken: String,
+                refreshToken: String
+            ) {
+                remotelyLoggedOutAccessToken = accessToken
+                remotelyLoggedOutRefreshToken = refreshToken
+            }
+        }
+
+        authViewModel = AuthViewModel(
+            AuthSession(tokenStorage, authRepository)
+        )
 
         composeRule.setContent {
             AppNavigation(viewModel = authViewModel)
@@ -45,42 +83,28 @@ class MainActivityLogoutTest {
     }
 
     @Test
-    fun logoutClearsTokensShowsLoginAndBackDoesNotReturnToHome() {
+    fun logoutRevokesBackendSessionClearsTokensAndResetsNavigation() {
         composeRule.onNodeWithText("Jan Kowalski").assertIsDisplayed()
-
         composeRule.onNodeWithContentDescription("Wyloguj").performClick()
-
         composeRule.onNodeWithText("Zaloguj się").assertIsDisplayed()
-        assertNull(tokenStorage.getAccessToken())
-        assertNull(tokenStorage.getRefreshToken())
+
+        composeRule.runOnIdle {
+            assertEquals("access-refreshed", remotelyLoggedOutAccessToken)
+            assertEquals("refresh-refreshed", remotelyLoggedOutRefreshToken)
+            assertNull(tokenStorage.getAccessToken())
+            assertNull(tokenStorage.getRefreshToken())
+        }
 
         Espresso.pressBackUnconditionally()
 
         val returnedToHome = try {
-            composeRule.onAllNodesWithText("Jan Kowalski").fetchSemanticsNodes().isNotEmpty()
+            composeRule.onAllNodesWithText("Jan Kowalski")
+                .fetchSemanticsNodes()
+                .isNotEmpty()
         } catch (_: IllegalStateException) {
             false
         }
 
         assertTrue(!returnedToHome)
-    }
-}
-
-private class FakeTokenStorage(
-    initialTokens: AuthTokens? = null
-) : TokenStorage {
-
-    private var tokens: AuthTokens? = initialTokens
-
-    override fun saveTokens(tokens: AuthTokens) {
-        this.tokens = tokens
-    }
-
-    override fun getAccessToken(): String? = tokens?.accessToken
-
-    override fun getRefreshToken(): String? = tokens?.refreshToken
-
-    override fun clearTokens() {
-        tokens = null
     }
 }

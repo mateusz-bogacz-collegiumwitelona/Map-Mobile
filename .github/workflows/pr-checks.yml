@@ -15,6 +15,10 @@ permissions:
   checks: write
   pull-requests: write
 
+env:
+  MAP_API_BASE_URL_DEVELOPMENT: ${{ vars.MAP_API_BASE_URL_DEVELOPMENT }}
+  MAP_API_BASE_URL_PRODUCTION: ${{ vars.MAP_API_BASE_URL_PRODUCTION }}
+
 jobs:
   unit-tests:
     name: Run Unit Tests
@@ -102,11 +106,17 @@ jobs:
           emulator-options: -no-window -no-snapshot -noaudio -no-boot-anim -camera-back none -no-metrics -gpu swiftshader_indirect
           disable-animations: true
           channel: stable
-          script: ./gradlew connectedDevelopmentDebugAndroidTest --no-daemon --stacktrace
+          script: ./gradlew connectedDevelopmentDebugAndroidTest --no-daemon --info --stacktrace
+
+      - name: Print Instrumented Test Failures
+        if: always()
+        run: |
+            echo "=== RAPORT ==="
+            find app/build -name "*.xml" -path "*androidTest-results*" -exec cat {} + || true
 
       - name: Publish Integration Test Results
         uses: EnricoMi/publish-unit-test-result-action@v2
-        if: always()
+        if: always() 
         with:
           check_name: "Integration / Instrumented Test Results"
           files: 'app/build/outputs/androidTest-results/**/TEST-*.xml'
@@ -116,4 +126,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: connected-test-reports
-          path: app/build/reports/androidTests/connected/flavors/development/
+          path: app/build/reports/androidTests/connected/
