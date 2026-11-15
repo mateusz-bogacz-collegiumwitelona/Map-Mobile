@@ -9,15 +9,15 @@ import com.example.map.domain.model.AccountDeletionResult
 import com.example.map.domain.model.EmailChangeError
 import com.example.map.domain.model.EmailChangeResult
 import com.example.map.domain.repository.AccountRepository
-import com.google.gson.Gson
 import kotlinx.coroutines.CancellationException
+import kotlinx.serialization.json.Json
 import retrofit2.Response
 import java.io.IOException
 import javax.inject.Inject
 
 class RemoteAccountRepository @Inject constructor(
     private val userApiService: UserApiService,
-    private val gson: Gson
+    private val json: Json
 ) : AccountRepository {
 
     override suspend fun requestEmailChange(newEmail: String): EmailChangeResult =
@@ -94,7 +94,7 @@ class RemoteAccountRepository @Inject constructor(
     private fun parseErrorBody(response: Response<ApiResultDto>): ApiResultDto? {
         val rawBody = response.errorBody()?.string() ?: return null
         return runCatching {
-            gson.fromJson(rawBody, ApiResultDto::class.java)
+            json.decodeFromString<ApiResultDto>(rawBody)
         }.getOrNull()
     }
 

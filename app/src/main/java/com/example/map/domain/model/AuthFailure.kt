@@ -1,0 +1,13 @@
+package com.example.map.domain.model
+
+enum class AuthFailure {
+    INVALID_CREDENTIALS,
+    EMAIL_NOT_CONFIRMED,
+    ACCOUNT_LOCKED,
+    ACCOUNT_BANNED,
+    ROLE_NOT_ALLOWED,
+    INVALID_SESSION,
+    NETWORK_ERROR,
+    SERVER_ERROR,
+    INVALID_RESPONSE
+}

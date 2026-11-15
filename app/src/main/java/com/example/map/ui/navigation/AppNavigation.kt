@@ -63,9 +63,9 @@ fun AppNavigation(
         ) {
             composable(LOGIN_ROUTE) {
                 LoginScreen(
-                    onLoginClick = { email, _, _ ->
-                        viewModel.onDemoLogin(email)
-                    }
+                    state = uiState,
+                    onLoginClick = viewModel::login,
+                    onInputsChanged = viewModel::clearErrors
                 )
             }
 

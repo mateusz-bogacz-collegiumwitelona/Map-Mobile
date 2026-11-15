@@ -16,6 +16,7 @@ import com.example.map.domain.model.AuthTokens
 import com.example.map.domain.usecase.AccountSession
 import com.example.map.domain.usecase.AuthSession
 import com.example.map.testing.FakeAccountRepository
+import com.example.map.testing.FakeAuthRepository
 import com.example.map.testing.FakeProfileStorage
 import com.example.map.testing.FakeTokenStorage
 import com.example.map.ui.navigation.AppNavigation
@@ -39,6 +40,7 @@ class AccountDeletionTeardownTest {
     val composeRule = createComposeRule()
 
     private lateinit var repository: FakeAccountRepository
+    private lateinit var authRepository: FakeAuthRepository
     private lateinit var tokenStorage: FakeTokenStorage
     private lateinit var profileStorage: FakeProfileStorage
     private lateinit var accountSession: AccountSession
@@ -48,6 +50,7 @@ class AccountDeletionTeardownTest {
     @Before
     fun setUp() {
         repository = FakeAccountRepository()
+        authRepository = FakeAuthRepository()
         tokenStorage = FakeTokenStorage(
             AuthTokens(
                 accessToken = "access-test-token",
@@ -57,7 +60,7 @@ class AccountDeletionTeardownTest {
         profileStorage = FakeProfileStorage("user@example.com")
         accountSession = AccountSession(repository, profileStorage)
         authViewModel = AuthViewModel(
-            authSession = AuthSession(tokenStorage),
+            authSession = AuthSession(tokenStorage, authRepository),
             accountSession = accountSession
         )
         settingsViewModel = SettingsViewModel(accountSession)
@@ -97,6 +100,8 @@ class AccountDeletionTeardownTest {
         assertNull(tokenStorage.getRefreshToken())
         assertNull(profileStorage.getEmail())
         assertEquals("", accountSession.email.value)
+        assertEquals(0, authRepository.refreshCalls)
+        assertEquals(0, authRepository.logoutCalls)
 
         Espresso.pressBackUnconditionally()
 

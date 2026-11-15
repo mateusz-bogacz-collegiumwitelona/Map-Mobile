@@ -10,17 +10,24 @@ class AuthInterceptor @Inject constructor(
 ) : Interceptor {
 
     override fun intercept(chain: Interceptor.Chain): Response {
+        val request = chain.request()
         val accessToken = tokenStorage.getAccessToken()
 
-        val request = if (accessToken.isNullOrBlank()) {
-            chain.request()
-        } else {
-            chain.request()
-                .newBuilder()
-                .header("Authorization", "Bearer $accessToken")
-                .build()
+        val shouldAttachToken = !accessToken.isNullOrBlank() &&
+                !request.url.encodedPath.contains(PUBLIC_AUTH_PATH)
+
+        if (!shouldAttachToken) {
+            return chain.proceed(request)
         }
 
-        return chain.proceed(request)
+        return chain.proceed(
+            request.newBuilder()
+                .header("Authorization", "Bearer $accessToken")
+                .build()
+        )
+    }
+
+    private companion object {
+        const val PUBLIC_AUTH_PATH = "/api/auth/"
     }
 }

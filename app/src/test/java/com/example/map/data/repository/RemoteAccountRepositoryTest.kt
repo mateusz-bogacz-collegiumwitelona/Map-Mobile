@@ -8,8 +8,8 @@ import com.example.map.domain.model.AccountDeletionError
 import com.example.map.domain.model.AccountDeletionResult
 import com.example.map.domain.model.EmailChangeError
 import com.example.map.domain.model.EmailChangeResult
-import com.google.gson.Gson
 import kotlinx.coroutines.test.runTest
+import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.ResponseBody.Companion.toResponseBody
 import org.junit.Assert.assertEquals
@@ -19,9 +19,11 @@ import java.io.IOException
 
 class RemoteAccountRepositoryTest {
 
-    private val gson = Gson()
+    private val json = Json {
+        ignoreUnknownKeys = true
+    }
     private val service = FakeUserApiService()
-    private val repository = RemoteAccountRepository(service, gson)
+    private val repository = RemoteAccountRepository(service, json)
 
     @Test
     fun mapsEmailTakenErrorCodeToEmailTaken() = runTest {
@@ -244,7 +246,7 @@ class RemoteAccountRepositoryTest {
         errorCode: String? = null,
         message: String? = null
     ): Response<ApiResultDto> {
-        val body = gson.toJson(
+        val body = json.encodeToString(
             ApiResultDto(
                 isSuccess = false,
                 message = message,
