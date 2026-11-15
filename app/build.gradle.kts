@@ -155,9 +155,6 @@ dependencies {
 
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)
-    implementation("androidx.compose.material:material-icons-extended")
-
-    testImplementation(libs.junit)
     testImplementation(libs.okhttpMockwebserver)
 
     androidTestImplementation(platform(libs.androidx.compose.bom))

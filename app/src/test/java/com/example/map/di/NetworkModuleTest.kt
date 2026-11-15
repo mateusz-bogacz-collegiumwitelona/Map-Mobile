@@ -6,7 +6,6 @@ import com.example.map.domain.model.AuthTokens
 import com.example.map.testing.FakeTokenStorage
 import kotlinx.serialization.Serializable
 import okhttp3.Request
-import kotlinx.serialization.Serializable
 import okhttp3.logging.HttpLoggingInterceptor
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
@@ -46,7 +45,6 @@ class NetworkModuleTest {
     fun retrofitUsesTheBaseUrlFromBuildConfiguration() {
         val json = NetworkModule.provideJson()
         val client = clientWithNoToken()
-        val client = NetworkModule.provideOkHttpClient()
         val retrofit = NetworkModule.provideRetrofit(json, client)
 
         assertEquals(
@@ -75,7 +73,6 @@ class NetworkModuleTest {
     @Test
     fun clientHasTimeoutsAndAddsLoggingOnlyInDebug() {
         val client = clientWithNoToken()
-        val client = NetworkModule.provideOkHttpClient()
 
         assertEquals(15_000, client.connectTimeoutMillis)
         assertEquals(30_000, client.readTimeoutMillis)
@@ -106,7 +103,6 @@ class NetworkModuleTest {
         )
 
         val client = clientWithNoToken()
-        val client = NetworkModule.provideOkHttpClient()
         val retrofit = Retrofit.Builder()
             .baseUrl(mockWebServer.url("/"))
             .client(client)
@@ -167,5 +163,4 @@ class NetworkModuleTest {
         @GET("probe")
         fun probe(): Call<ResponseBody>
     }
-}
 }
