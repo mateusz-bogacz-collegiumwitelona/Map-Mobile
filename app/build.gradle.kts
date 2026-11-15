@@ -1,12 +1,77 @@
+import java.net.URI
+import java.net.URISyntaxException
+import java.util.Properties
+import org.gradle.api.tasks.testing.AbstractTestTask
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.kotlinSerialization)
     alias(libs.plugins.hilt)
     alias(libs.plugins.ksp)
 }
 
+val localProperties = Properties()
+val localPropertiesFile = rootProject.file("local.properties")
+
+if (localPropertiesFile.isFile) {
+    localPropertiesFile.inputStream().use { input ->
+        localProperties.load(input)
+    }
+}
+
+fun readApiBaseUrl(propertyName: String): String {
+    val value = providers.gradleProperty(propertyName).orNull
+        ?: providers.environmentVariable(propertyName).orNull
+        ?: localProperties.getProperty(propertyName)
+        ?: throw org.gradle.api.GradleException(
+            "Brak $propertyName. Ustaw tę wartość w local.properties, zmiennej środowiskowej albo przez -P."
+        )
+
+    val parsedUrl = try {
+        URI(value)
+    } catch (error: URISyntaxException) {
+        throw org.gradle.api.GradleException(
+            "$propertyName nie jest poprawnym adresem URL: $value",
+            error
+        )
+    }
+
+    check(parsedUrl.scheme == "http" || parsedUrl.scheme == "https") {
+        "$propertyName musi zaczynać się od http:// albo https://."
+    }
+    check(!parsedUrl.host.isNullOrBlank()) {
+        "$propertyName musi zawierać nazwę hosta."
+    }
+    check(value.endsWith("/")) {
+        "$propertyName musi kończyć się znakiem /, np. https://api.example.com/."
+    }
+
+    if (propertyName == "MAP_API_BASE_URL_PRODUCTION") {
+        check(parsedUrl.scheme == "https") {
+            "Produkcyjny adres API musi używać HTTPS."
+        }
+    }
+
+    return value
+}
+
+fun asBuildConfigString(value: String): String {
+    val escapedValue = value
+        .replace("\\", "\\\\")
+        .replace("\"", "\\\"")
+
+    return "\"$escapedValue\""
+}
+
+val developmentApiBaseUrl =
+    readApiBaseUrl("MAP_API_BASE_URL_DEVELOPMENT")
+val productionApiBaseUrl =
+    readApiBaseUrl("MAP_API_BASE_URL_PRODUCTION")
+
 android {
     namespace = "com.example.map"
+
     compileSdk {
         version = release(37)
     }
@@ -18,7 +83,7 @@ android {
         versionCode = 1
         versionName = "1.0"
 
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunner = "com.example.map.CustomTestRunner"
     }
 
     flavorDimensions += "environment"
@@ -29,7 +94,7 @@ android {
             buildConfigField(
                 "String",
                 "API_BASE_URL",
-                "\"https://dev-api.example.invalid/\""
+                asBuildConfigString(developmentApiBaseUrl)
             )
         }
 
@@ -38,7 +103,7 @@ android {
             buildConfigField(
                 "String",
                 "API_BASE_URL",
-                "\"https://api.example.invalid/\""
+                asBuildConfigString(productionApiBaseUrl)
             )
         }
     }
@@ -66,6 +131,13 @@ android {
 dependencies {
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
+
+    implementation(libs.retrofit)
+    implementation(libs.retrofitKotlinxSerialization)
+    implementation(libs.okhttp)
+    implementation(libs.okhttpLoggingInterceptor)
+    implementation(libs.kotlinxSerializationJson)
+
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.compose.material3)
@@ -77,15 +149,28 @@ dependencies {
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.security.crypto)
     implementation("androidx.compose.material:material-icons-extended")
-    testImplementation(libs.junit)
 
-    // Tests
+    testImplementation(libs.junit)
+    testImplementation(libs.okhttpMockwebserver)
+
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(libs.androidx.junit)
+    androidTestImplementation(libs.hiltAndroidTesting)
+
     debugImplementation(libs.androidx.compose.ui.test.manifest)
     debugImplementation(libs.androidx.compose.ui.tooling)
-    androidTestImplementation("com.google.dagger:hilt-android-testing:2.51.1")
+
     kspAndroidTest(libs.hilt.compiler)
+}
+
+tasks.withType<AbstractTestTask>().configureEach {
+    testLogging {
+        events("passed", "skipped", "failed", "standardOut", "standardError")
+        showExceptions = true
+        showCauses = true
+        showStackTraces = true
+        exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
+    }
 }
