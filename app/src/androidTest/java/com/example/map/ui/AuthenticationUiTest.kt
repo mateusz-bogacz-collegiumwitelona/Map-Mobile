@@ -1,19 +1,21 @@
 package com.example.map.ui
 
 import androidx.compose.ui.test.assertIsDisplayed
-import androidx.compose.ui.test.isToggleable
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performTextInput
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.example.map.ui.screens.HomeScreen
 import com.example.map.ui.screens.LoginScreen
+import com.example.map.ui.viewmodels.AuthUiState
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import androidx.compose.ui.test.assertIsNotEnabled
 
 @RunWith(AndroidJUnit4::class)
 class AuthenticationUiTest {
@@ -22,42 +24,63 @@ class AuthenticationUiTest {
     val composeRule = createComposeRule()
 
     @Test
-    fun loginPassesRememberMeAsFalseByDefault() {
-        var receivedRememberMe: Boolean? = null
+    fun loginPassesEnteredEmailAndPassword() {
+        var receivedEmail: String? = null
+        var receivedPassword: String? = null
 
         composeRule.setContent {
             LoginScreen(
-                onLoginClick = { _, _, rememberMe ->
-                    receivedRememberMe = rememberMe
-                }
+                state = AuthUiState(isAuthenticated = false),
+                onLoginClick = { email, password ->
+                    receivedEmail = email
+                    receivedPassword = password
+                },
+                onInputsChanged = {}
             )
         }
 
+        composeRule.onNodeWithText("E-mail").performTextInput("user@example.com")
+        composeRule.onNodeWithText("Hasło").performTextInput("Password123!")
         composeRule.onNodeWithText("Zaloguj się").performClick()
 
         composeRule.runOnIdle {
-            assertEquals(false, receivedRememberMe)
+            assertEquals("user@example.com", receivedEmail)
+            assertEquals("Password123!", receivedPassword)
         }
     }
 
     @Test
-    fun loginPassesRememberMeAsTrueWhenCheckboxIsSelected() {
-        var receivedRememberMe: Boolean? = null
-
+    fun loginDisplaysValidationErrorsFromUiState() {
         composeRule.setContent {
             LoginScreen(
-                onLoginClick = { _, _, rememberMe ->
-                    receivedRememberMe = rememberMe
-                }
+                state = AuthUiState(
+                    isAuthenticated = false,
+                    emailError = "Wpisz poprawny adres e-mail.",
+                    passwordError = "Wpisz hasło."
+                ),
+                onLoginClick = { _, _ -> },
+                onInputsChanged = {}
             )
         }
 
-        composeRule.onNode(isToggleable()).performClick()
-        composeRule.onNodeWithText("Zaloguj się").performClick()
+        composeRule.onNodeWithText("Wpisz poprawny adres e-mail.").assertIsDisplayed()
+        composeRule.onNodeWithText("Wpisz hasło.").assertIsDisplayed()
+    }
 
-        composeRule.runOnIdle {
-            assertEquals(true, receivedRememberMe)
+    @Test
+    fun loginDisplaysServerOrNetworkError() {
+        composeRule.setContent {
+            LoginScreen(
+                state = AuthUiState(
+                    isAuthenticated = false,
+                    errorMessage = "Brak połączenia z serwerem."
+                ),
+                onLoginClick = { _, _ -> },
+                onInputsChanged = {}
+            )
         }
+
+        composeRule.onNodeWithText("Brak połączenia z serwerem.").assertIsDisplayed()
     }
 
     @Test
@@ -74,5 +97,22 @@ class AuthenticationUiTest {
         composeRule.runOnIdle {
             assertTrue(logoutCalled)
         }
+    }
+
+    @Test
+    fun loadingStateDisablesLoginInputs() {
+        composeRule.setContent {
+            LoginScreen(
+                state = AuthUiState(
+                    isAuthenticated = false,
+                    isLoading = true
+                ),
+                onLoginClick = { _, _ -> },
+                onInputsChanged = {}
+            )
+        }
+
+        composeRule.onNodeWithText("E-mail").assertIsNotEnabled()
+        composeRule.onNodeWithText("Hasło").assertIsNotEnabled()
     }
 }

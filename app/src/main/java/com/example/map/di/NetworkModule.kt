@@ -1,6 +1,9 @@
 package com.example.map.di
 
 import com.example.map.BuildConfig
+import com.example.map.data.remote.AuthInterceptor
+import com.example.map.data.remote.service.AuthApi
+import com.example.map.data.remote.service.UserApiService
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -27,8 +30,11 @@ object NetworkModule {
 
     @Provides
     @Singleton
-    fun provideOkHttpClient(): OkHttpClient {
+    fun provideOkHttpClient(
+        authInterceptor: AuthInterceptor
+    ): OkHttpClient {
         val builder = OkHttpClient.Builder()
+            .addInterceptor(authInterceptor)
             .connectTimeout(15, TimeUnit.SECONDS)
             .readTimeout(30, TimeUnit.SECONDS)
             .writeTimeout(30, TimeUnit.SECONDS)
@@ -61,4 +67,14 @@ object NetworkModule {
             .addConverterFactory(json.asConverterFactory(contentType))
             .build()
     }
+
+    @Provides
+    @Singleton
+    fun provideAuthApi(retrofit: Retrofit): AuthApi =
+        retrofit.create(AuthApi::class.java)
+
+    @Provides
+    @Singleton
+    fun provideUserApiService(retrofit: Retrofit): UserApiService =
+        retrofit.create(UserApiService::class.java)
 }
