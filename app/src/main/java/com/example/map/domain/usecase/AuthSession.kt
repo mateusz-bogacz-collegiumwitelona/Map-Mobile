@@ -20,12 +20,13 @@ class AuthSession(
         if (!hasOnlyUserRole) {
             try {
                 authRepository.logout(
-                    account.tokens.accessToken,
-                    account.tokens.refreshToken
+                    accessToken = account.tokens.accessToken,
+                    refreshToken = account.tokens.refreshToken
                 )
             } catch (cancelled: CancellationException) {
                 throw cancelled
             } catch (_: Exception) {
+                // Nie przyjmuj konta z niedozwoloną rolą, nawet gdy revoke się nie uda.
             }
 
             throw AuthException(AuthFailure.ROLE_NOT_ALLOWED)
@@ -51,20 +52,6 @@ class AuthSession(
                 authRepository.logout(accessToken, refreshToken)
             } catch (error: AuthException) {
                 if (error.failure != AuthFailure.INVALID_SESSION) throw error
-        !tokenStorage.getAccessToken().isNullOrBlank() &&
-                !tokenStorage.getRefreshToken().isNullOrBlank()
-
-    fun clearLocalSession() {
-        tokenStorage.clearTokens()
-    }
-
-    suspend fun logout() {
-        val refreshToken = tokenStorage.getRefreshToken()
-
-        try {
-            if (refreshToken.isNullOrBlank()) {
-                throw AuthException(AuthFailure.INVALID_SESSION)
-            }
 
                 val refreshedAccount = authRepository.refresh(refreshToken)
                 tokenStorage.saveTokens(refreshedAccount.tokens)
@@ -77,5 +64,9 @@ class AuthSession(
         } finally {
             tokenStorage.clearTokens()
         }
+    }
+
+    fun clearLocalSession() {
+        tokenStorage.clearTokens()
     }
 }

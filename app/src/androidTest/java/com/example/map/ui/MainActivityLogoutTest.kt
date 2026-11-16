@@ -11,8 +11,6 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.example.map.domain.model.AuthenticatedAccount
 import com.example.map.domain.model.AuthTokens
 import com.example.map.domain.repository.AuthRepository
-import com.example.map.domain.model.AuthenticatedAccount
-import com.example.map.domain.repository.AuthRepository
 import com.example.map.domain.usecase.AccountSession
 import com.example.map.domain.usecase.AuthSession
 import com.example.map.testing.FakeAccountRepository
@@ -75,7 +73,11 @@ class MainActivityLogoutTest {
         }
 
         authViewModel = AuthViewModel(
-            AuthSession(tokenStorage, authRepository)
+            authSession = AuthSession(tokenStorage, authRepository),
+            accountSession = AccountSession(
+                FakeAccountRepository(),
+                FakeProfileStorage()
+            )
         )
 
         composeRule.setContent {

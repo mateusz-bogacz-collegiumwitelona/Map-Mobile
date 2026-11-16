@@ -17,9 +17,8 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import retrofit2.Call
-import retrofit2.Retrofit
-import retrofit2.http.GET
-import okhttp3.ResponseBody
+import retrofit2.http.Body
+import retrofit2.http.POST
 
 class NetworkModuleTest {
 
@@ -99,22 +98,28 @@ class NetworkModuleTest {
         mockWebServer.enqueue(
             MockResponse()
                 .setResponseCode(200)
-                .setBody("pong")
+                .setHeader("Content-Type", "application/json")
+                .setBody("""{"name":"server"}""")
         )
 
-        val client = clientWithNoToken()
-        val retrofit = Retrofit.Builder()
+        val retrofit = NetworkModule.provideRetrofit(
+            NetworkModule.provideJson(),
+            clientWithNoToken()
+        )
+            .newBuilder()
             .baseUrl(mockWebServer.url("/"))
-            .client(client)
             .build()
 
         val api = retrofit.create(ProbeApi::class.java)
+        val response = api.probe(JsonSample(name = "client")).execute()
 
-        val response = api.probe().execute()
         assertEquals(200, response.code())
-        assertEquals("pong", response.body()?.string())
+        assertEquals("server", response.body()?.name)
 
-        assertEquals("/probe", mockWebServer.takeRequest().path)
+        val request = mockWebServer.takeRequest()
+        assertEquals("POST", request.method)
+        assertEquals("/probe", request.path)
+        assertEquals("""{"name":"client"}""", request.body.readUtf8())
     }
 
     @Test
@@ -160,7 +165,7 @@ class NetworkModuleTest {
         val name: String
     )
     private interface ProbeApi {
-        @GET("probe")
-        fun probe(): Call<ResponseBody>
+        @POST("probe")
+        fun probe(@Body sample: JsonSample): Call<JsonSample>
     }
 }

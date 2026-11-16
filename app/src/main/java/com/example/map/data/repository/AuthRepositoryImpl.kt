@@ -37,49 +37,6 @@ class AuthRepositoryImpl @Inject constructor(
         executeAuthCall {
             authApi.refresh(RefreshTokenRequestDto(refreshToken))
         }.toDomain()
-
-    override suspend fun logout(
-        accessToken: String,
-        refreshToken: String
-    ) {
-        val response = try {
-            authApi.logout(
-                authorization = "Bearer $accessToken",
-                request = LogoutRequestDto(refreshToken)
-            )
-        } catch (error: IOException) {
-            throw AuthException(AuthFailure.NETWORK_ERROR, error)
-        }
-
-        if (!response.isSuccessful) {
-            val errorCode = readErrorCode(response.errorBody()?.string())
-
-            if (response.code() == 401 || errorCode == "AUTH_003") {
-                throw AuthException(AuthFailure.INVALID_SESSION)
-            }
-
-            throw failure(
-                errorCode = readErrorCode(response.errorBody()?.string()),
-                statusCode = response.code()
-            )
-        }
-
-        val envelope = response.body()
-            ?: throw AuthException(AuthFailure.INVALID_RESPONSE)
-
-        if (!envelope.isSuccess) {
-            throw failure(
-                errorCode = envelope.errorCode,
-                statusCode = envelope.statusCode ?: response.code()
-            )
-        }
-
-        val data = envelope.data
-            ?: throw AuthException(AuthFailure.INVALID_RESPONSE)
-
-        return data.toDomain()
-    }
-
     private suspend fun <T : Any> executeAuthCall(
         apiCall: suspend () -> Response<ApiEnvelopeDto<T>>
     ): T {
@@ -108,11 +65,8 @@ class AuthRepositoryImpl @Inject constructor(
             )
         }
 
-        val data = envelope.data
         return envelope.data
             ?: throw AuthException(AuthFailure.INVALID_RESPONSE)
-
-        return data.toDomain()
     }
 
     override suspend fun logout(
@@ -129,8 +83,14 @@ class AuthRepositoryImpl @Inject constructor(
         }
 
         if (!response.isSuccessful) {
+            val errorCode = readErrorCode(response.errorBody()?.string())
+
+            if (response.code() == 401 || errorCode == "AUTH_003") {
+                throw AuthException(AuthFailure.INVALID_SESSION)
+            }
+
             throw failure(
-                errorCode = readErrorCode(response.errorBody()?.string()),
+                errorCode = errorCode,
                 statusCode = response.code()
             )
         }
