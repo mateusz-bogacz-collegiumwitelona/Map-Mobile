@@ -106,11 +106,17 @@ jobs:
           emulator-options: -no-window -no-snapshot -noaudio -no-boot-anim -camera-back none -no-metrics -gpu swiftshader_indirect
           disable-animations: true
           channel: stable
-          script: ./gradlew connectedDevelopmentDebugAndroidTest --no-daemon --stacktrace
+          script: ./gradlew connectedDevelopmentDebugAndroidTest --no-daemon --info --stacktrace
+
+      - name: Print Instrumented Test Failures
+        if: always()
+        run: |
+            echo "=== RAPORT ==="
+            find app/build -name "*.xml" -path "*androidTest-results*" -exec cat {} + || true
 
       - name: Publish Integration Test Results
         uses: EnricoMi/publish-unit-test-result-action@v2
-        if: always()
+        if: always() 
         with:
           check_name: "Integration / Instrumented Test Results"
           files: 'app/build/outputs/androidTest-results/**/TEST-*.xml'

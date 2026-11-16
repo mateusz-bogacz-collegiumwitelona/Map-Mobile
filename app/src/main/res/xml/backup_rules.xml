@@ -3,4 +3,7 @@
     <exclude
         domain="sharedpref"
         path="secure_prefs.xml" />
+    <exclude
+        domain="sharedpref"
+        path="profile_prefs.xml" />
 </full-backup-content>

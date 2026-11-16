@@ -51,6 +51,20 @@ class AuthSession(
                 authRepository.logout(accessToken, refreshToken)
             } catch (error: AuthException) {
                 if (error.failure != AuthFailure.INVALID_SESSION) throw error
+        !tokenStorage.getAccessToken().isNullOrBlank() &&
+                !tokenStorage.getRefreshToken().isNullOrBlank()
+
+    fun clearLocalSession() {
+        tokenStorage.clearTokens()
+    }
+
+    suspend fun logout() {
+        val refreshToken = tokenStorage.getRefreshToken()
+
+        try {
+            if (refreshToken.isNullOrBlank()) {
+                throw AuthException(AuthFailure.INVALID_SESSION)
+            }
 
                 val refreshedAccount = authRepository.refresh(refreshToken)
                 tokenStorage.saveTokens(refreshedAccount.tokens)

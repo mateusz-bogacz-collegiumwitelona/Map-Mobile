@@ -11,7 +11,12 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.example.map.domain.model.AuthenticatedAccount
 import com.example.map.domain.model.AuthTokens
 import com.example.map.domain.repository.AuthRepository
+import com.example.map.domain.model.AuthenticatedAccount
+import com.example.map.domain.repository.AuthRepository
+import com.example.map.domain.usecase.AccountSession
 import com.example.map.domain.usecase.AuthSession
+import com.example.map.testing.FakeAccountRepository
+import com.example.map.testing.FakeProfileStorage
 import com.example.map.ui.navigation.AppNavigation
 import com.example.map.ui.viewmodels.AuthViewModel
 import org.junit.Assert.assertEquals

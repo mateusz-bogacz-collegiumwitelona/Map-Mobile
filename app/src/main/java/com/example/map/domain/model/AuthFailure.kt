@@ -10,6 +10,5 @@ enum class AuthFailure {
     NETWORK_ERROR,
     SERVER_ERROR,
     INVALID_RESPONSE,
-
     TOO_MANY_ATTEMPTS
 }

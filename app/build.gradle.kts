@@ -71,7 +71,6 @@ val productionApiBaseUrl =
 
 android {
     namespace = "com.example.map"
-
     compileSdk {
         version = release(37)
     }
@@ -150,6 +149,10 @@ dependencies {
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.security.crypto)
     implementation(libs.androidx.compose.material.icons.extended)
+
+    implementation(libs.androidx.compose.material.icons.extended)
+    implementation(libs.androidx.hilt.navigation.compose)
+    implementation(libs.kotlinx.coroutines.android)
 
     testImplementation(libs.junit)
     testImplementation(libs.okhttpMockwebserver)

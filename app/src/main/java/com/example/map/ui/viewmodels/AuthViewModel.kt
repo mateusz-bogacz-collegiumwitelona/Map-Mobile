@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.map.domain.model.AuthException
 import com.example.map.domain.model.AuthFailure
+import com.example.map.domain.usecase.AccountSession
 import com.example.map.domain.usecase.AuthSession
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.util.concurrent.CancellationException
@@ -59,87 +60,13 @@ class AuthViewModel @Inject constructor(
                 )
             }
 
-            try {
-                authSession.login(normalizedEmail, password)
-                _uiState.value = AuthUiState(isAuthenticated = true)
-            } catch (cancelled: CancellationException) {
-                throw cancelled
-            } catch (error: AuthException) {
-                _uiState.update {
-                    it.copy(
-                        isLoading = false,
-                        errorMessage = messageFor(error.failure)
-                    )
-                }
-            } catch (_: Exception) {
-                _uiState.update {
-                    it.copy(
-                        isLoading = false,
-                        errorMessage = "Nie udało się zalogować. Spróbuj ponownie."
-                    )
-                }
-            }
-        }
-    }
-
-    fun clearErrors() {
-        _uiState.update {
-            it.copy(
-                emailError = null,
-                passwordError = null,
-                errorMessage = null
-            )
-        }
+    fun onLoginSucceeded(tokens: AuthTokens, rememberMe: Boolean) {
+        authSession.saveAfterLogin(tokens, rememberMe)
+        _uiState.update { it.copy(isAuthenticated = true) }
     }
 
     fun logout() {
-        if (_uiState.value.isLoading) return
-
-        viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true, errorMessage = null) }
-
-            var logoutError: String? = null
-
-            try {
-                authSession.logout()
-            } catch (cancelled: CancellationException) {
-                throw cancelled
-            } catch (_: Exception) {
-                logoutError =
-                    "Usunięto sesję z urządzenia, ale serwer nie potwierdził wylogowania."
-            }
-
-            _uiState.value = AuthUiState(
-                isAuthenticated = false,
-                errorMessage = logoutError
-            )
-        }
-    }
-
-    private fun messageFor(failure: AuthFailure): String =
-        when (failure) {
-            AuthFailure.INVALID_CREDENTIALS ->
-                "Nieprawidłowy e-mail lub hasło."
-            AuthFailure.EMAIL_NOT_CONFIRMED ->
-                "Potwierdź adres e-mail przed zalogowaniem."
-            AuthFailure.ACCOUNT_LOCKED ->
-                "Konto jest tymczasowo zablokowane. Spróbuj ponownie później."
-            AuthFailure.ACCOUNT_BANNED ->
-                "To konto nie może się zalogować."
-            AuthFailure.ROLE_NOT_ALLOWED ->
-                "Logowanie jest dostępne wyłącznie dla kont z rolą USER."
-            AuthFailure.INVALID_SESSION ->
-                "Sesja wygasła. Zaloguj się ponownie."
-            AuthFailure.NETWORK_ERROR ->
-                "Brak połączenia z serwerem. Sprawdź internet i spróbuj ponownie."
-            AuthFailure.SERVER_ERROR,
-            AuthFailure.INVALID_RESPONSE ->
-                "Serwer nie mógł obsłużyć logowania. Spróbuj ponownie."
-            AuthFailure.TOO_MANY_ATTEMPTS ->
-                "Zbyt wiele prób. Spróbuj ponownie za chwilę."
-        }
-
-    private companion object {
-        val EMAIL_REGEX = Regex("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$")
+        authSession.logout()
+        _uiState.update { it.copy(isAuthenticated = false) }
     }
 }

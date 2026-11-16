@@ -29,7 +29,10 @@ import com.example.map.ui.theme.ButtonLight
 import com.example.map.ui.theme.SurfaceGray
 
 @Composable
-fun HomeScreen(onLogoutClick: () -> Unit) {
+fun HomeScreen(
+    onLogoutClick: () -> Unit,
+    onSettingsClick: () -> Unit = {}
+) {
     val scrollState = rememberScrollState()
 
     Column(
@@ -37,7 +40,11 @@ fun HomeScreen(onLogoutClick: () -> Unit) {
             .fillMaxSize()
             .background(BackgroundDark)
     ) {
-        Header(title = "Map", onLogoutClick = onLogoutClick)
+        Header(
+            title = "Map",
+            onSettingsClick = onSettingsClick,
+            onLogoutClick = onLogoutClick
+        )
 
         Column(
             modifier = Modifier

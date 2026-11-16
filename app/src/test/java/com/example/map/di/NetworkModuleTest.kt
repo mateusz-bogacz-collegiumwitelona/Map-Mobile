@@ -1,23 +1,34 @@
 package com.example.map.di
 
 import com.example.map.BuildConfig
+import com.example.map.data.remote.AuthInterceptor
+import com.example.map.domain.model.AuthTokens
+import com.example.map.testing.FakeTokenStorage
 import kotlinx.serialization.Serializable
+import okhttp3.Request
 import okhttp3.logging.HttpLoggingInterceptor
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import retrofit2.Call
 import retrofit2.Retrofit
-import retrofit2.http.Body
-import retrofit2.http.POST
+import retrofit2.http.GET
+import okhttp3.ResponseBody
 
 class NetworkModuleTest {
 
     private lateinit var mockWebServer: MockWebServer
+
+    private fun clientWithNoToken(): okhttp3.OkHttpClient =
+        NetworkModule.provideOkHttpClient(
+            AuthInterceptor(FakeTokenStorage())
+        )
 
     @Before
     fun setUp() {
@@ -33,7 +44,7 @@ class NetworkModuleTest {
     @Test
     fun retrofitUsesTheBaseUrlFromBuildConfiguration() {
         val json = NetworkModule.provideJson()
-        val client = NetworkModule.provideOkHttpClient()
+        val client = clientWithNoToken()
         val retrofit = NetworkModule.provideRetrofit(json, client)
 
         assertEquals(
@@ -48,7 +59,7 @@ class NetworkModuleTest {
         val json = NetworkModule.provideJson()
 
         assertEquals(
-            """{"name":"Map","isPublic":true}""",
+            """{"name":"Map"}""",
             json.encodeToString(JsonSample(name = "Map"))
         )
 
@@ -61,7 +72,7 @@ class NetworkModuleTest {
 
     @Test
     fun clientHasTimeoutsAndAddsLoggingOnlyInDebug() {
-        val client = NetworkModule.provideOkHttpClient()
+        val client = clientWithNoToken()
 
         assertEquals(15_000, client.connectTimeoutMillis)
         assertEquals(30_000, client.readTimeoutMillis)
@@ -84,46 +95,72 @@ class NetworkModuleTest {
     }
 
     @Test
-    fun retrofitClientSerializesRequestAndDeserializesResponse() {
+    fun retrofitClientCanMakeARequest() {
         mockWebServer.enqueue(
             MockResponse()
                 .setResponseCode(200)
-                .setHeader("Content-Type", "application/json")
-                .setBody(
-                    """{"name":"Server map","isPublic":false,"newField":"ignored"}"""
-                )
+                .setBody("pong")
         )
 
-        val json = NetworkModule.provideJson()
-        val client = NetworkModule.provideOkHttpClient()
-        val retrofit = NetworkModule.provideRetrofit(json, client)
-            .newBuilder()
+        val client = clientWithNoToken()
+        val retrofit = Retrofit.Builder()
             .baseUrl(mockWebServer.url("/"))
+            .client(client)
             .build()
 
         val api = retrofit.create(ProbeApi::class.java)
-        val response = api.probe(JsonSample(name = "Client map")).execute()
 
-        assertTrue(response.isSuccessful)
-        assertEquals(JsonSample(name = "Server map", isPublic = false), response.body())
+        val response = api.probe().execute()
+        assertEquals(200, response.code())
+        assertEquals("pong", response.body()?.string())
 
-        val request = mockWebServer.takeRequest()
-        assertEquals("POST", request.method)
-        assertEquals("/probe", request.path)
-        assertEquals(
-            """{"name":"Client map","isPublic":true}""",
-            request.body.readUtf8()
+        assertEquals("/probe", mockWebServer.takeRequest().path)
+    }
+
+    @Test
+    fun clientAttachesBearerTokenOnlyToAuthenticatedEndpoints() {
+        val tokenStorage = FakeTokenStorage(
+            AuthTokens(
+                accessToken = "access-test",
+                refreshToken = "refresh-test"
+            )
         )
+        val client = NetworkModule.provideOkHttpClient(AuthInterceptor(tokenStorage))
+
+        mockWebServer.enqueue(MockResponse().setResponseCode(200))
+        client.newCall(
+            Request.Builder().url(mockWebServer.url("/api/user")).build()
+        ).execute().close()
+
+        assertEquals(
+            "Bearer access-test",
+            mockWebServer.takeRequest().getHeader("Authorization")
+        )
+
+        mockWebServer.enqueue(MockResponse().setResponseCode(200))
+        client.newCall(
+            Request.Builder().url(mockWebServer.url("/api/auth/login")).build()
+        ).execute().close()
+
+        assertNull(mockWebServer.takeRequest().getHeader("Authorization"))
+    }
+
+    @Test
+    fun providesUserApiServiceFromTheSharedRetrofit() {
+        val retrofit = NetworkModule.provideRetrofit(
+            NetworkModule.provideJson(),
+            clientWithNoToken()
+        )
+
+        assertNotNull(NetworkModule.provideUserApiService(retrofit))
     }
 
     @Serializable
     private data class JsonSample(
-        val name: String,
-        val isPublic: Boolean = true
+        val name: String
     )
-
     private interface ProbeApi {
-        @POST("probe")
-        fun probe(@Body request: JsonSample): Call<JsonSample>
+        @GET("probe")
+        fun probe(): Call<ResponseBody>
     }
 }

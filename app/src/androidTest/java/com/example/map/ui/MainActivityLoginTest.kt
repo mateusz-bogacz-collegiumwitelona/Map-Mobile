@@ -8,7 +8,10 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.example.map.domain.model.AuthenticatedAccount
 import com.example.map.domain.model.AuthTokens
 import com.example.map.domain.repository.AuthRepository
+import com.example.map.domain.usecase.AccountSession
 import com.example.map.domain.usecase.AuthSession
+import com.example.map.testing.FakeAccountRepository
+import com.example.map.testing.FakeProfileStorage
 import com.example.map.ui.navigation.AppNavigation
 import com.example.map.ui.viewmodels.AuthViewModel
 import org.junit.Assert.assertEquals
@@ -30,6 +33,7 @@ class MainActivityLoginTest {
     @Test
     fun successfulUserLoginStoresTokensAndOpensHome() {
         val tokenStorage = FakeTokenStorage()
+        val profileStorage = FakeProfileStorage()
 
         val authRepository = object : AuthRepository {
             override suspend fun login(
@@ -56,7 +60,8 @@ class MainActivityLoginTest {
         }
 
         val viewModel = AuthViewModel(
-            AuthSession(tokenStorage, authRepository)
+            AuthSession(tokenStorage, authRepository),
+            AccountSession(FakeAccountRepository(), profileStorage)
         )
 
         composeRule.setContent {
@@ -75,6 +80,7 @@ class MainActivityLoginTest {
         composeRule.runOnIdle {
             assertEquals("access-user", tokenStorage.getAccessToken())
             assertEquals("refresh-user", tokenStorage.getRefreshToken())
+            assertEquals("user@example.com", profileStorage.getEmail())
         }
     }
 
@@ -104,7 +110,8 @@ class MainActivityLoginTest {
         }
 
         val viewModel = AuthViewModel(
-            AuthSession(FakeTokenStorage(), repository)
+            AuthSession(FakeTokenStorage(), repository),
+            AccountSession(FakeAccountRepository(), FakeProfileStorage())
         )
 
         composeRule.setContent {
@@ -152,7 +159,8 @@ class MainActivityLoginTest {
         }
 
         val viewModel = AuthViewModel(
-            AuthSession(FakeTokenStorage(), repository)
+            AuthSession(FakeTokenStorage(), repository),
+            AccountSession(FakeAccountRepository(), FakeProfileStorage())
         )
 
         composeRule.setContent {
