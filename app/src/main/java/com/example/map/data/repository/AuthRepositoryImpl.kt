@@ -14,6 +14,9 @@ import java.io.IOException
 import javax.inject.Inject
 import kotlinx.serialization.json.Json
 import com.example.map.data.remote.dto.RefreshTokenRequestDto
+import com.example.map.data.remote.dto.ApiEnvelopeDto
+import kotlinx.serialization.SerializationException
+import retrofit2.Response
 
 class AuthRepositoryImpl @Inject constructor(
     private val authApi: AuthApi,
@@ -23,67 +26,17 @@ class AuthRepositoryImpl @Inject constructor(
     override suspend fun login(
         email: String,
         password: String
-    ): AuthenticatedAccount {
-        val response = try {
+    ): AuthenticatedAccount =
+        executeAuthCall {
             authApi.login(LoginRequestDto(email = email, password = password))
-        } catch (error: IOException) {
-            throw AuthException(AuthFailure.NETWORK_ERROR, error)
-        }
-
-        if (!response.isSuccessful) {
-            throw failure(
-                errorCode = readErrorCode(response.errorBody()?.string()),
-                statusCode = response.code()
-            )
-        }
-
-        val envelope = response.body()
-            ?: throw AuthException(AuthFailure.INVALID_RESPONSE)
-
-        if (!envelope.isSuccess) {
-            throw failure(
-                errorCode = envelope.errorCode,
-                statusCode = envelope.statusCode ?: response.code()
-            )
-        }
-
-        val data = envelope.data
-            ?: throw AuthException(AuthFailure.INVALID_RESPONSE)
-
-        return data.toDomain()
-    }
+        }.toDomain()
 
     override suspend fun refresh(
         refreshToken: String
-    ): AuthenticatedAccount {
-        val response = try {
+    ): AuthenticatedAccount =
+        executeAuthCall {
             authApi.refresh(RefreshTokenRequestDto(refreshToken))
-        } catch (error: IOException) {
-            throw AuthException(AuthFailure.NETWORK_ERROR, error)
-        }
-
-        if (!response.isSuccessful) {
-            throw failure(
-                errorCode = readErrorCode(response.errorBody()?.string()),
-                statusCode = response.code()
-            )
-        }
-
-        val envelope = response.body()
-            ?: throw AuthException(AuthFailure.INVALID_RESPONSE)
-
-        if (!envelope.isSuccess) {
-            throw failure(
-                errorCode = envelope.errorCode,
-                statusCode = envelope.statusCode ?: response.code()
-            )
-        }
-
-        val data = envelope.data
-            ?: throw AuthException(AuthFailure.INVALID_RESPONSE)
-
-        return data.toDomain()
-    }
+        }.toDomain()
 
     override suspend fun logout(
         accessToken: String,
@@ -99,13 +52,51 @@ class AuthRepositoryImpl @Inject constructor(
         }
 
         if (!response.isSuccessful) {
+            val errorCode = readErrorCode(response.errorBody()?.string())
+
+            if (response.code() == 401 || errorCode == "AUTH_003") {
+                throw AuthException(AuthFailure.INVALID_SESSION)
+            }
+
+            throw failure(
+                errorCode = errorCode,
+                statusCode = response.code()
+            )
+        }
+
+        response.body()?.close()
+    }
+
+    private suspend fun <T : Any> executeAuthCall(
+        apiCall: suspend () -> Response<ApiEnvelopeDto<T>>
+    ): T {
+        val response = try {
+            apiCall()
+        } catch (error: IOException) {
+            throw AuthException(AuthFailure.NETWORK_ERROR, error)
+        } catch (error: SerializationException) {
+            throw AuthException(AuthFailure.INVALID_RESPONSE, error)
+        }
+
+        if (!response.isSuccessful) {
             throw failure(
                 errorCode = readErrorCode(response.errorBody()?.string()),
                 statusCode = response.code()
             )
         }
 
-        response.body()?.close()
+        val envelope = response.body()
+            ?: throw AuthException(AuthFailure.INVALID_RESPONSE)
+
+        if (!envelope.isSuccess) {
+            throw failure(
+                errorCode = envelope.errorCode,
+                statusCode = envelope.statusCode ?: response.code()
+            )
+        }
+
+        return envelope.data
+            ?: throw AuthException(AuthFailure.INVALID_RESPONSE)
     }
 
     private fun AuthResponseDto.toDomain() = AuthenticatedAccount(
@@ -133,10 +124,12 @@ class AuthRepositoryImpl @Inject constructor(
             "AUTH_003" -> AuthFailure.INVALID_SESSION
             "AUTH_004" -> AuthFailure.ACCOUNT_LOCKED
             "AUTH_005" -> AuthFailure.ACCOUNT_BANNED
+            "COMMON_005" -> AuthFailure.TOO_MANY_ATTEMPTS
             else -> when (statusCode) {
                 401 -> AuthFailure.INVALID_CREDENTIALS
                 423 -> AuthFailure.ACCOUNT_LOCKED
                 403 -> AuthFailure.ACCOUNT_BANNED
+                429 -> AuthFailure.TOO_MANY_ATTEMPTS
                 else -> AuthFailure.SERVER_ERROR
             }
         }

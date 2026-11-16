@@ -12,8 +12,8 @@ import org.junit.Before
 import org.junit.Test
 import retrofit2.Call
 import retrofit2.Retrofit
-import retrofit2.http.GET
-import okhttp3.ResponseBody
+import retrofit2.http.Body
+import retrofit2.http.POST
 
 class NetworkModuleTest {
 
@@ -48,7 +48,7 @@ class NetworkModuleTest {
         val json = NetworkModule.provideJson()
 
         assertEquals(
-            """{"name":"Map"}""",
+            """{"name":"Map","isPublic":true}""",
             json.encodeToString(JsonSample(name = "Map"))
         )
 
@@ -84,34 +84,46 @@ class NetworkModuleTest {
     }
 
     @Test
-    fun retrofitClientCanMakeARequest() {
+    fun retrofitClientSerializesRequestAndDeserializesResponse() {
         mockWebServer.enqueue(
             MockResponse()
                 .setResponseCode(200)
-                .setBody("pong")
+                .setHeader("Content-Type", "application/json")
+                .setBody(
+                    """{"name":"Server map","isPublic":false,"newField":"ignored"}"""
+                )
         )
 
+        val json = NetworkModule.provideJson()
         val client = NetworkModule.provideOkHttpClient()
-        val retrofit = Retrofit.Builder()
+        val retrofit = NetworkModule.provideRetrofit(json, client)
+            .newBuilder()
             .baseUrl(mockWebServer.url("/"))
-            .client(client)
             .build()
 
         val api = retrofit.create(ProbeApi::class.java)
+        val response = api.probe(JsonSample(name = "Client map")).execute()
 
-        val response = api.probe().execute()
-        assertEquals(200, response.code())
-        assertEquals("pong", response.body()?.string())
+        assertTrue(response.isSuccessful)
+        assertEquals(JsonSample(name = "Server map", isPublic = false), response.body())
 
-        assertEquals("/probe", mockWebServer.takeRequest().path)
+        val request = mockWebServer.takeRequest()
+        assertEquals("POST", request.method)
+        assertEquals("/probe", request.path)
+        assertEquals(
+            """{"name":"Client map","isPublic":true}""",
+            request.body.readUtf8()
+        )
     }
 
     @Serializable
     private data class JsonSample(
-        val name: String
+        val name: String,
+        val isPublic: Boolean = true
     )
+
     private interface ProbeApi {
-        @GET("probe")
-        fun probe(): Call<ResponseBody>
+        @POST("probe")
+        fun probe(@Body request: JsonSample): Call<JsonSample>
     }
 }

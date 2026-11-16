@@ -11,6 +11,7 @@ import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
+import org.junit.Assert.assertFalse
 
 class AuthSessionTest {
 
@@ -38,9 +39,12 @@ class AuthSessionTest {
             readTokens = { storedTokens },
             writeTokens = { storedTokens = it }
         )
-        val repository = testRepository(roles = listOf("Admin")) { access, refresh ->
-            revokedTokens = AuthTokens(access, refresh)
-        }
+        val repository = testRepository(
+            roles = listOf("Admin"),
+            onLogout = { access, refresh ->
+                revokedTokens = AuthTokens(access, refresh)
+            }
+        )
 
         val error = try {
             AuthSession(storage, repository).login("admin@example.com", "password")
@@ -76,22 +80,67 @@ class AuthSessionTest {
     }
 
     @Test
-    fun logoutCallsBackendAndClearsLocalTokens() = runBlocking {
+    fun logoutUsesCurrentTokensWithoutRefreshingAndClearsLocalTokens() = runBlocking {
         var storedTokens: AuthTokens? = AuthTokens("access-test", "refresh-test")
         var revokedTokens: AuthTokens? = null
+        var refreshCalled = false
 
         val storage = testStorage(
             readTokens = { storedTokens },
             writeTokens = { storedTokens = it }
         )
-        val repository = testRepository(roles = listOf("User")) { access, refresh ->
-            revokedTokens = AuthTokens(access, refresh)
-        }
+        val repository = testRepository(
+            roles = listOf("User"),
+            onLogout = { access, refresh ->
+                revokedTokens = AuthTokens(access, refresh)
+            },
+            onRefresh = {
+                refreshCalled = true
+            }
+        )
 
         AuthSession(storage, repository).logout()
 
-        assertEquals("access-refreshed", revokedTokens?.accessToken)
-        assertEquals("refresh-refreshed", revokedTokens?.refreshToken)
+        assertEquals("access-test", revokedTokens?.accessToken)
+        assertEquals("refresh-test", revokedTokens?.refreshToken)
+        assertFalse(refreshCalled)
+        assertNull(storedTokens)
+    }
+
+    @Test
+    fun logoutRefreshesAndRetriesWhenCurrentAccessTokenIsInvalid() = runBlocking {
+        var storedTokens: AuthTokens? = AuthTokens("access-test", "refresh-test")
+        var refreshArgument: String? = null
+        val logoutCalls = mutableListOf<AuthTokens>()
+
+        val storage = testStorage(
+            readTokens = { storedTokens },
+            writeTokens = { storedTokens = it }
+        )
+        val repository = testRepository(
+            roles = listOf("User"),
+            onLogout = { access, refresh ->
+                logoutCalls += AuthTokens(access, refresh)
+
+                if (logoutCalls.size == 1) {
+                    throw AuthException(AuthFailure.INVALID_SESSION)
+                }
+            },
+            onRefresh = { refresh ->
+                refreshArgument = refresh
+            }
+        )
+
+        AuthSession(storage, repository).logout()
+
+        assertEquals("refresh-test", refreshArgument)
+        assertEquals(
+            listOf(
+                AuthTokens("access-test", "refresh-test"),
+                AuthTokens("access-refreshed", "refresh-refreshed")
+            ),
+            logoutCalls
+        )
         assertNull(storedTokens)
     }
 
@@ -137,7 +186,8 @@ class AuthSessionTest {
 
     private fun testRepository(
         roles: List<String>,
-        onLogout: (String, String) -> Unit = { _, _ -> }
+        onLogout: (String, String) -> Unit = { _, _ -> },
+        onRefresh: (String) -> Unit = {}
     ): AuthRepository = object : AuthRepository {
         override suspend fun login(
             email: String,
@@ -149,13 +199,17 @@ class AuthSessionTest {
 
         override suspend fun refresh(
             refreshToken: String
-        ): AuthenticatedAccount = AuthenticatedAccount(
-            tokens = AuthTokens(
-                accessToken = "access-refreshed",
-                refreshToken = "refresh-refreshed"
-            ),
-            roles = roles
-        )
+        ): AuthenticatedAccount {
+            onRefresh(refreshToken)
+
+            return AuthenticatedAccount(
+                tokens = AuthTokens(
+                    accessToken = "access-refreshed",
+                    refreshToken = "refresh-refreshed"
+                ),
+                roles = roles
+            )
+        }
 
         override suspend fun logout(
             accessToken: String,

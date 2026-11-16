@@ -119,7 +119,7 @@ class AuthViewModel @Inject constructor(
     private fun messageFor(failure: AuthFailure): String =
         when (failure) {
             AuthFailure.INVALID_CREDENTIALS ->
-                "Nieprawidłowy e-mail lub hasło. Konto może też wymagać potwierdzenia adresu e-mail."
+                "Nieprawidłowy e-mail lub hasło."
             AuthFailure.EMAIL_NOT_CONFIRMED ->
                 "Potwierdź adres e-mail przed zalogowaniem."
             AuthFailure.ACCOUNT_LOCKED ->
@@ -135,6 +135,8 @@ class AuthViewModel @Inject constructor(
             AuthFailure.SERVER_ERROR,
             AuthFailure.INVALID_RESPONSE ->
                 "Serwer nie mógł obsłużyć logowania. Spróbuj ponownie."
+            AuthFailure.TOO_MANY_ATTEMPTS ->
+                "Zbyt wiele prób. Spróbuj ponownie za chwilę."
         }
 
     private companion object {

@@ -149,7 +149,7 @@ dependencies {
     implementation(libs.androidx.lifecycle.viewmodel.ktx)
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.security.crypto)
-    implementation("androidx.compose.material:material-icons-extended")
+    implementation(libs.androidx.compose.material.icons.extended)
 
     testImplementation(libs.junit)
     testImplementation(libs.okhttpMockwebserver)
@@ -168,7 +168,7 @@ dependencies {
 
 tasks.withType<AbstractTestTask>().configureEach {
     testLogging {
-        events("passed", "skipped", "failed", "standardOut", "standardError")
+        events("failed")
         showExceptions = true
         showCauses = true
         showStackTraces = true

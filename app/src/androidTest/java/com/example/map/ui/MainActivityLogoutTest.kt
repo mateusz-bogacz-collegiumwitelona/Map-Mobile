@@ -56,13 +56,9 @@ class MainActivityLogoutTest {
 
             override suspend fun refresh(
                 refreshToken: String
-            ): AuthenticatedAccount = AuthenticatedAccount(
-                tokens = AuthTokens(
-                    accessToken = "access-refreshed",
-                    refreshToken = "refresh-refreshed"
-                ),
-                roles = listOf("User")
-            )
+            ): AuthenticatedAccount {
+                error("Refresh nie powinien być wywołany po udanym logout.")
+            }
 
             override suspend fun logout(
                 accessToken: String,
@@ -89,8 +85,8 @@ class MainActivityLogoutTest {
         composeRule.onNodeWithText("Zaloguj się").assertIsDisplayed()
 
         composeRule.runOnIdle {
-            assertEquals("access-refreshed", remotelyLoggedOutAccessToken)
-            assertEquals("refresh-refreshed", remotelyLoggedOutRefreshToken)
+            assertEquals("access-test-token", remotelyLoggedOutAccessToken)
+            assertEquals("refresh-test-token", remotelyLoggedOutRefreshToken)
             assertNull(tokenStorage.getAccessToken())
             assertNull(tokenStorage.getRefreshToken())
         }
