@@ -16,6 +16,9 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import androidx.compose.ui.test.assertIsNotEnabled
+import androidx.compose.ui.test.performImeAction
+import androidx.compose.ui.test.hasImeAction
+import androidx.compose.ui.text.input.ImeAction
 
 @RunWith(AndroidJUnit4::class)
 class AuthenticationUiTest {
@@ -81,6 +84,35 @@ class AuthenticationUiTest {
         }
 
         composeRule.onNodeWithText("Brak połączenia z serwerem.").assertIsDisplayed()
+    }
+
+    @Test
+    fun passwordImeDoneSubmitsLogin() {
+        var submittedEmail: String? = null
+        var submittedPassword: String? = null
+
+        composeRule.setContent {
+            LoginScreen(
+                state = AuthUiState(isAuthenticated = false),
+                onLoginClick = { email, password ->
+                    submittedEmail = email
+                    submittedPassword = password
+                },
+                onInputsChanged = {}
+            )
+        }
+
+        composeRule.onNodeWithText("E-mail")
+            .performTextInput("user@example.com")
+        composeRule.onNodeWithText("Hasło")
+            .performTextInput("Password123!")
+        composeRule.onNode(hasImeAction(ImeAction.Done))
+            .performImeAction()
+
+        composeRule.runOnIdle {
+            assertEquals("user@example.com", submittedEmail)
+            assertEquals("Password123!", submittedPassword)
+        }
     }
 
     @Test

@@ -132,6 +132,22 @@ class AuthRepositoryImplTest {
     }
 
     @Test
+    fun loginMapsMalformedSuccessfulResponseToInvalidResponse() = runBlocking {
+        mockWebServer.enqueue(
+            MockResponse()
+                .setResponseCode(200)
+                .setHeader("Content-Type", "application/json")
+                .setBody("<html>proxy error</html>")
+        )
+
+        val error = captureAuthException {
+            repository.login("user@example.com", "Password123!")
+        }
+
+        assertEquals(AuthFailure.INVALID_RESPONSE, error.failure)
+    }
+
+    @Test
     fun logoutSendsBearerTokenAndRefreshToken() = runBlocking {
         mockWebServer.enqueue(
             MockResponse()
@@ -174,6 +190,15 @@ class AuthRepositoryImplTest {
     }
 
     @Test
+    fun loginMaps429StatusEvenWhenErrorCodeIsUnknown() = runBlocking {
+        assertLoginFailure(
+            httpStatus = 429,
+            errorCode = "UNKNOWN_CODE",
+            expectedFailure = AuthFailure.TOO_MANY_ATTEMPTS
+        )
+    }
+
+    @Test
     fun refreshPostsRefreshTokenAndMapsRotatedTokens() = runBlocking {
         mockWebServer.enqueue(
             MockResponse()
@@ -209,6 +234,15 @@ class AuthRepositoryImplTest {
         assertEquals(
             """{"refreshToken":"refresh-old"}""",
             request.body.readUtf8()
+        )
+    }
+
+    @Test
+    fun loginMapsRateLimitError() = runBlocking {
+        assertLoginFailure(
+            httpStatus = 429,
+            errorCode = "COMMON_005",
+            expectedFailure = AuthFailure.TOO_MANY_ATTEMPTS
         )
     }
 

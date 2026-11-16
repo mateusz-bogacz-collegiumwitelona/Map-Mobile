@@ -99,7 +99,9 @@ class AuthViewModel @Inject constructor(
         if (_uiState.value.isLoading) return
 
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true, errorMessage = null) }
+            _uiState.update {
+                it.copy(isLoading = true, errorMessage = null)
+            }
 
             var logoutError: String? = null
 
@@ -107,6 +109,11 @@ class AuthViewModel @Inject constructor(
                 authSession.logout()
             } catch (cancelled: CancellationException) {
                 throw cancelled
+            } catch (error: AuthException) {
+                if (error.failure != AuthFailure.INVALID_SESSION) {
+                    logoutError =
+                        "Usunięto sesję z urządzenia, ale serwer nie potwierdził wylogowania."
+                }
             } catch (_: Exception) {
                 logoutError =
                     "Usunięto sesję z urządzenia, ale serwer nie potwierdził wylogowania."
@@ -124,13 +131,13 @@ class AuthViewModel @Inject constructor(
     fun onAccountDeleted() {
         authSession.clearLocalSession()
         accountSession.clear()
-        _uiState.update { it.copy(isAuthenticated = false) }
+        _uiState.value = AuthUiState(isAuthenticated = false)
     }
 
     private fun messageFor(failure: AuthFailure): String =
         when (failure) {
             AuthFailure.INVALID_CREDENTIALS ->
-                "Nieprawidłowy e-mail lub hasło. Konto może też wymagać potwierdzenia adresu e-mail."
+                "Nieprawidłowy e-mail lub hasło."
             AuthFailure.EMAIL_NOT_CONFIRMED ->
                 "Potwierdź adres e-mail przed zalogowaniem."
             AuthFailure.ACCOUNT_LOCKED ->
@@ -143,6 +150,8 @@ class AuthViewModel @Inject constructor(
                 "Sesja wygasła. Zaloguj się ponownie."
             AuthFailure.NETWORK_ERROR ->
                 "Brak połączenia z serwerem. Sprawdź internet i spróbuj ponownie."
+            AuthFailure.TOO_MANY_ATTEMPTS ->
+                "Zbyt wiele prób logowania. Spróbuj ponownie później."
             AuthFailure.SERVER_ERROR,
             AuthFailure.INVALID_RESPONSE ->
                 "Serwer nie mógł obsłużyć logowania. Spróbuj ponownie."

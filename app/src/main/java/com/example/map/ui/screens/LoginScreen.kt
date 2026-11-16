@@ -50,6 +50,7 @@ import com.example.map.ui.theme.ButtonLight
 import com.example.map.ui.theme.SurfaceGray
 import com.example.map.ui.theme.TextGray
 import com.example.map.ui.viewmodels.AuthUiState
+import androidx.compose.foundation.text.KeyboardActions
 
 @Composable
 fun LoginScreen(
@@ -113,7 +114,8 @@ fun LoginScreen(
             onValueChange = {
                 password = it
                 onInputsChanged()
-            }
+            },
+            onImeDone = { onLoginClick(email, password) }
         )
 
         state.errorMessage?.let { error ->
@@ -187,6 +189,7 @@ private fun LoginInputField(
     keyboardType: KeyboardType,
     imeAction: ImeAction,
     onValueChange: (String) -> Unit,
+    onImeDone: () -> Unit = {},
     visualTransformation: VisualTransformation = VisualTransformation.None
 ) {
     val shape = RoundedCornerShape(6.dp)
@@ -223,6 +226,9 @@ private fun LoginInputField(
                 keyboardOptions = KeyboardOptions(
                     keyboardType = keyboardType,
                     imeAction = imeAction
+                ),
+                keyboardActions = KeyboardActions(
+                    onDone = { onImeDone() }
                 ),
                 visualTransformation = visualTransformation,
                 modifier = Modifier.fillMaxWidth(),

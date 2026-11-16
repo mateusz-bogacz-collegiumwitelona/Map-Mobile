@@ -71,7 +71,6 @@ val productionApiBaseUrl =
 
 android {
     namespace = "com.example.map"
-
     compileSdk {
         version = release(37)
     }
@@ -154,8 +153,8 @@ dependencies {
     implementation(libs.kotlinx.coroutines.android)
 
     testImplementation(libs.junit)
-    testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.okhttpMockwebserver)
+    testImplementation(libs.kotlinx.coroutines.test)
 
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
@@ -171,7 +170,7 @@ dependencies {
 
 tasks.withType<AbstractTestTask>().configureEach {
     testLogging {
-        events("passed", "skipped", "failed", "standardOut", "standardError")
+        events("failed")
         showExceptions = true
         showCauses = true
         showStackTraces = true
