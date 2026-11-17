@@ -7,8 +7,14 @@ import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.POST
+import com.example.map.data.remote.dto.ApiEnvelopeDto
+import com.example.map.data.remote.dto.UserProfileDto
+import retrofit2.http.GET
 
 interface UserApiService {
+
+    @GET("api/user")
+    suspend fun getCurrentUserProfile(): Response<ApiEnvelopeDto<UserProfileDto>>
 
     @POST("api/user/email")
     suspend fun requestEmailChange(

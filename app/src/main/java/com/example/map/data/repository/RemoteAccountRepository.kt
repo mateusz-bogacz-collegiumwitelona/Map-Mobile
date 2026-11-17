@@ -14,12 +14,29 @@ import kotlinx.serialization.json.Json
 import retrofit2.Response
 import java.io.IOException
 import javax.inject.Inject
+import com.example.map.domain.model.UserProfile
 
 class RemoteAccountRepository @Inject constructor(
     private val userApiService: UserApiService,
     private val json: Json
 ) : AccountRepository {
 
+    override suspend fun getCurrentUserProfile(): UserProfile {
+        val response = userApiService.getCurrentUserProfile()
+        val body = response.body()
+        val profile = body?.data
+
+        if (!response.isSuccessful || body?.isSuccess != true || profile == null) {
+            throw IOException(
+                body?.message ?: "Nie udało się pobrać danych profilu."
+            )
+        }
+
+        return UserProfile(
+            firstName = profile.firstName,
+            lastName = profile.lastName
+        )
+    }
     override suspend fun requestEmailChange(newEmail: String): EmailChangeResult =
         execute {
             userApiService.requestEmailChange(ChangeEmailRequestDto(newEmail))
