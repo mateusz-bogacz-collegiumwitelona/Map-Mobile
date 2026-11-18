@@ -22,6 +22,7 @@ import com.example.map.ui.viewmodels.AuthViewModel
 import com.example.map.ui.viewmodels.ChangeEmailViewModel
 import com.example.map.ui.viewmodels.HomeViewModel
 import com.example.map.ui.viewmodels.SettingsViewModel
+import com.example.map.ui.viewmodels.TripManagerViewModel
 
 private const val LOGIN_ROUTE = "login"
 private const val HOME_ROUTE = "home"
@@ -36,7 +37,9 @@ fun AppNavigation(
     modifier: Modifier = Modifier,
     homeViewModelFactory: @Composable () -> HomeViewModel = { hiltViewModel() },
     settingsViewModelFactory: @Composable () -> SettingsViewModel = { hiltViewModel() },
-    changeEmailViewModelFactory: @Composable () -> ChangeEmailViewModel = { hiltViewModel() }
+    changeEmailViewModelFactory: @Composable () -> ChangeEmailViewModel = { hiltViewModel() },
+    tripManagerViewModelFactory: @Composable () -> TripManagerViewModel = { hiltViewModel() }
+
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val navController = rememberNavController()
@@ -102,8 +105,31 @@ fun AppNavigation(
             }
 
             composable(TRIP_MANAGER_ROUTE) {
+                val tripManagerViewModel = tripManagerViewModelFactory()
+                val tripManagerState by tripManagerViewModel.uiState.collectAsState()
+
                 TripManagerScreen(
-                    onBackClick = { navController.popBackStack() }
+                    state = tripManagerState,
+                    onBackClick = { navController.popBackStack() },
+                    onTitleChange = tripManagerViewModel::onTitleChange,
+                    onDescriptionChange = tripManagerViewModel::onDescriptionChange,
+                    onStartDateSelected = tripManagerViewModel::onStartDateSelected,
+                    onEndDateEnabledChange = tripManagerViewModel::onEndDateEnabledChange,
+                    onEndDateSelected = tripManagerViewModel::onEndDateSelected,
+                    onAddSegment = tripManagerViewModel::addSegment,
+                    onRemoveSegment = tripManagerViewModel::removeSegment,
+                    onTransportTypeChange = tripManagerViewModel::onTransportTypeChange,
+                    onOpenPlacePicker = tripManagerViewModel::openPlacePicker,
+                    onClosePlacePicker = tripManagerViewModel::closePlacePicker,
+                    onPlaceQueryChange = tripManagerViewModel::onPlaceQueryChange,
+                    onPlaceSelected = tripManagerViewModel::selectPlace,
+                    onSaveTrip = tripManagerViewModel::saveTrip,
+                    onTripCreated = { navController.popBackStack() },
+                    onMoveSegment = tripManagerViewModel::moveSegment,
+                    onSettingsClick = {
+                        navController.navigate(SETTINGS_ROUTE)
+                    },
+                    onLogoutClick = viewModel::logout,
                 )
             }
 

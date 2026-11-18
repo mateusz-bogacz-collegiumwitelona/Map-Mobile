@@ -19,6 +19,9 @@ import com.example.map.ui.viewmodels.HomeViewModel
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import com.example.map.domain.usecase.TripSession
+import com.example.map.testing.NoOpTripRepository
+import com.example.map.ui.viewmodels.TripManagerViewModel
 
 @RunWith(AndroidJUnit4::class)
 class HomeNavigationUiTest {
@@ -49,7 +52,12 @@ class HomeNavigationUiTest {
         composeRule.setContent {
             AppNavigation(
                 viewModel = authViewModel,
-                homeViewModelFactory = { homeViewModel }
+                homeViewModelFactory = { homeViewModel },
+                tripManagerViewModelFactory = {
+                    TripManagerViewModel(
+                        TripSession(NoOpTripRepository())
+                    )
+                }
             )
         }
 

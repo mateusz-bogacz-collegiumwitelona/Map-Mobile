@@ -16,6 +16,7 @@ import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.kotlinx.serialization.asConverterFactory
+import com.example.map.data.remote.service.TripApi
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -78,4 +79,9 @@ object NetworkModule {
     @Singleton
     fun provideUserApiService(retrofit: Retrofit): UserApiService =
         retrofit.create(UserApiService::class.java)
+
+    @Provides
+    @Singleton
+    fun provideTripApi(retrofit: Retrofit): TripApi =
+        retrofit.create(TripApi::class.java)
 }

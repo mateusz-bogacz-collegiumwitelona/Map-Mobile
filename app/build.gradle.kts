@@ -166,6 +166,7 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.tooling)
 
     kspAndroidTest(libs.hilt.compiler)
+    implementation(libs.reorderable)
 }
 
 tasks.withType<AbstractTestTask>().configureEach {
