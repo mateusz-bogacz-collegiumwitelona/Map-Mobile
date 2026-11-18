@@ -17,6 +17,7 @@ import com.example.map.testing.FakeAccountRepository
 import com.example.map.testing.FakeProfileStorage
 import com.example.map.ui.navigation.AppNavigation
 import com.example.map.ui.viewmodels.AuthViewModel
+import com.example.map.ui.viewmodels.HomeViewModel
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -33,6 +34,7 @@ class MainActivityLogoutTest {
 
     private lateinit var tokenStorage: FakeTokenStorage
     private lateinit var authViewModel: AuthViewModel
+    private lateinit var homeViewModel: HomeViewModel
 
     private var remotelyLoggedOutAccessToken: String? = null
     private var remotelyLoggedOutRefreshToken: String? = null
@@ -72,16 +74,21 @@ class MainActivityLogoutTest {
             }
         }
 
+        val accountSession = AccountSession(
+            FakeAccountRepository(),
+            FakeProfileStorage()
+        )
+        homeViewModel = HomeViewModel(accountSession)
         authViewModel = AuthViewModel(
             authSession = AuthSession(tokenStorage, authRepository),
-            accountSession = AccountSession(
-                FakeAccountRepository(),
-                FakeProfileStorage()
-            )
+            accountSession = accountSession
         )
 
         composeRule.setContent {
-            AppNavigation(viewModel = authViewModel)
+            AppNavigation(
+                viewModel = authViewModel,
+                homeViewModelFactory = { homeViewModel }
+            )
         }
     }
 

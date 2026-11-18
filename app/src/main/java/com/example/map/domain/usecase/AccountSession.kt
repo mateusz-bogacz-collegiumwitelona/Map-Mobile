@@ -7,6 +7,7 @@ import com.example.map.domain.repository.ProfileStorage
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import com.example.map.domain.model.UserProfile
 
 class AccountSession(
     private val accountRepository: AccountRepository,
@@ -23,6 +24,8 @@ class AccountSession(
         _email.value = normalized
     }
 
+    suspend fun getCurrentUserProfile(): UserProfile =
+        accountRepository.getCurrentUserProfile()
     suspend fun requestEmailChange(newEmail: String): EmailChangeResult =
         accountRepository.requestEmailChange(newEmail.trim())
 

@@ -1,9 +1,6 @@
 package com.example.map.data.repository
 
 import com.example.map.data.remote.dto.ApiResultDto
-import com.example.map.data.remote.dto.ChangeEmailRequestDto
-import com.example.map.data.remote.dto.ConfirmEmailChangeRequestDto
-import com.example.map.data.remote.service.UserApiService
 import com.example.map.domain.model.AccountDeletionError
 import com.example.map.domain.model.AccountDeletionResult
 import com.example.map.domain.model.EmailChangeError
@@ -16,6 +13,9 @@ import org.junit.Assert.assertEquals
 import org.junit.Test
 import retrofit2.Response
 import java.io.IOException
+import com.example.map.data.remote.dto.ApiEnvelopeDto
+import com.example.map.data.remote.dto.UserProfileDto
+import com.example.map.domain.model.UserProfile
 
 class RemoteAccountRepositoryTest {
 
@@ -241,6 +241,24 @@ class RemoteAccountRepositoryTest {
         assertEquals(AccountDeletionResult.Success, repository.deleteAccount())
     }
 
+    @Test
+    fun getCurrentUserProfileReturnsFirstAndLastName() = runTest {
+        service.profileResponse = Response.success(
+            ApiEnvelopeDto(
+                isSuccess = true,
+                data = UserProfileDto(
+                    firstName = "Tomasz",
+                    lastName = "Kot"
+                )
+            )
+        )
+
+        assertEquals(
+            UserProfile(firstName = "Tomasz", lastName = "Kot"),
+            repository.getCurrentUserProfile()
+        )
+    }
+
     private fun errorResponse(
         status: Int,
         errorCode: String? = null,
@@ -257,38 +275,5 @@ class RemoteAccountRepositoryTest {
             status,
             body.toResponseBody("application/json".toMediaType())
         )
-    }
-}
-
-private class FakeUserApiService : UserApiService {
-
-    var requestResponse: Response<ApiResultDto> =
-        Response.success(ApiResultDto(isSuccess = true))
-    var confirmResponse: Response<ApiResultDto> =
-        Response.success(ApiResultDto(isSuccess = true))
-    var deleteResponse: Response<ApiResultDto> =
-        Response.success(ApiResultDto(isSuccess = true))
-
-    var requestException: Exception? = null
-    var confirmException: Exception? = null
-    var deleteException: Exception? = null
-
-    override suspend fun requestEmailChange(
-        request: ChangeEmailRequestDto
-    ): Response<ApiResultDto> {
-        requestException?.let { throw it }
-        return requestResponse
-    }
-
-    override suspend fun confirmEmailChange(
-        request: ConfirmEmailChangeRequestDto
-    ): Response<ApiResultDto> {
-        confirmException?.let { throw it }
-        return confirmResponse
-    }
-
-    override suspend fun deleteAccount(): Response<ApiResultDto> {
-        deleteException?.let { throw it }
-        return deleteResponse
     }
 }

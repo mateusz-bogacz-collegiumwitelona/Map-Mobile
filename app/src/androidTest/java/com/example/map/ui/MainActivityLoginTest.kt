@@ -23,6 +23,7 @@ import org.junit.Assert.assertFalse
 import com.example.map.domain.model.AuthException
 import com.example.map.domain.model.AuthFailure
 import org.junit.Assert.assertTrue
+import com.example.map.ui.viewmodels.HomeViewModel
 
 @RunWith(AndroidJUnit4::class)
 class MainActivityLoginTest {
@@ -59,13 +60,21 @@ class MainActivityLoginTest {
             ) = Unit
         }
 
+        val accountSession = AccountSession(
+            FakeAccountRepository(),
+            profileStorage
+        )
+        val homeViewModel = HomeViewModel(accountSession)
         val viewModel = AuthViewModel(
             AuthSession(tokenStorage, authRepository),
-            AccountSession(FakeAccountRepository(), profileStorage)
+            accountSession
         )
 
         composeRule.setContent {
-            AppNavigation(viewModel = viewModel)
+            AppNavigation(
+                viewModel = viewModel,
+                homeViewModelFactory = { homeViewModel }
+            )
         }
 
         composeRule.onNodeWithText("E-mail")
