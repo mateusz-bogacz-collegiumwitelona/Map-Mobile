@@ -18,6 +18,9 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
+import com.example.map.domain.model.TripDetails
+import com.example.map.domain.model.TripDraft
+import com.example.map.domain.model.TripSegmentDraft
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class TripManagerViewModelTest {
@@ -152,5 +155,47 @@ class TripManagerViewModelTest {
             listOf(1L, 3L, 2L),
             viewModel.uiState.value.segments.map { it.id }
         )
+    }
+
+    @Test
+    fun loadsTripAndUpdatesExistingTrip() = runTest(dispatcher) {
+        val tripId = "trip-1"
+        val draft = TripDraft(
+            title = "Weekend",
+            description = "Wyjazd do miasta",
+            startDateMillis = 1_000L,
+            endDateMillis = 2_000L,
+            segments = listOf(
+                TripSegmentDraft(
+                    id = 1L,
+                    origin = warsaw,
+                    destination = wroclaw
+                )
+            )
+        )
+        repository.tripDetails[tripId] = TripDetails(
+            id = tripId,
+            draft = draft
+        )
+
+        viewModel.loadTrip(tripId)
+        advanceUntilIdle()
+
+        assertEquals(tripId, viewModel.uiState.value.tripId)
+        assertEquals("Weekend", viewModel.uiState.value.title)
+        assertEquals("Wyjazd do miasta", viewModel.uiState.value.description)
+        assertEquals(1, viewModel.uiState.value.segments.size)
+
+        viewModel.onTitleChange("Weekend po edycji")
+        viewModel.saveTrip()
+        advanceUntilIdle()
+
+        assertTrue(repository.createdTrips.isEmpty())
+        assertEquals(tripId, repository.updatedTrips.single().first)
+        assertEquals(
+            "Weekend po edycji",
+            repository.updatedTrips.single().second.title
+        )
+        assertTrue(viewModel.uiState.value.isSaved)
     }
 }

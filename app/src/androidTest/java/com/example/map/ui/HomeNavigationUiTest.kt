@@ -22,6 +22,7 @@ import org.junit.runner.RunWith
 import com.example.map.domain.usecase.TripSession
 import com.example.map.testing.NoOpTripRepository
 import com.example.map.ui.viewmodels.TripManagerViewModel
+import com.example.map.ui.viewmodels.TripListViewModel
 
 @RunWith(AndroidJUnit4::class)
 class HomeNavigationUiTest {
@@ -53,6 +54,11 @@ class HomeNavigationUiTest {
             AppNavigation(
                 viewModel = authViewModel,
                 homeViewModelFactory = { homeViewModel },
+                tripListViewModelFactory = {
+                    TripListViewModel(
+                        TripSession(NoOpTripRepository())
+                    )
+                },
                 tripManagerViewModelFactory = {
                     TripManagerViewModel(
                         TripSession(NoOpTripRepository())

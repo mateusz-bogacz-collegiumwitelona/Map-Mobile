@@ -125,7 +125,11 @@ fun TripManagerScreen(
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Text(
-                text = "Dodawanie podróży",
+                text = if (state.tripId == null) {
+                    "Dodawanie podróży"
+                } else {
+                    "Edycja podróży"
+                },
                 color = Color.White,
                 fontSize = 22.sp,
                 fontWeight = FontWeight.Medium
@@ -371,7 +375,15 @@ fun TripManagerScreen(
         AlertDialog(
             onDismissRequest = onTripCreated,
             title = { Text("Podróż zapisana") },
-            text = { Text("Nowa podróż została dodana.") },
+            text = {
+                Text(
+                    if (state.tripId == null) {
+                        "Nowa podróż została dodana."
+                    } else {
+                        "Zmiany w podróży zostały zapisane."
+                    }
+                )
+            },
             confirmButton = {
                 TextButton(onClick = onTripCreated) {
                     Text("OK")
@@ -432,7 +444,11 @@ private fun TripSegmentCard(
         Spacer(Modifier.height(8.dp))
 
         PlaceButton(
-            text = segment.origin?.let { "${it.name}, ${it.countryName}" } ?: "Początek",
+            text = segment.origin?.let {
+                listOf(it.name, it.countryName)
+                    .filter { value -> value.isNotBlank() }
+                    .joinToString(", ")
+            } ?: "Początek",
             tag = "trip_segment_${segment.id}_origin",
             onClick = { onOpenPlacePicker(segment.id, true) }
         )
@@ -441,7 +457,9 @@ private fun TripSegmentCard(
 
         PlaceButton(
             text = segment.destination?.let {
-                "${it.name}, ${it.countryName}"
+                listOf(it.name, it.countryName)
+                    .filter { value -> value.isNotBlank() }
+                    .joinToString(", ")
             } ?: "Koniec",
             tag = "trip_segment_${segment.id}_destination",
             onClick = { onOpenPlacePicker(segment.id, false) }

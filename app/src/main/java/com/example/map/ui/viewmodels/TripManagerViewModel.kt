@@ -25,7 +25,52 @@ class TripManagerViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(TripManagerUiState())
     val uiState = _uiState.asStateFlow()
 
+    fun loadTrip(tripId: String?) {
+        if (tripId == null) {
+            loadedTripId = null
+            nextSegmentId = 2L
+            _uiState.value = TripManagerUiState()
+            return
+        }
+
+        if (loadedTripId == tripId) return
+
+        loadedTripId = tripId
+        _uiState.value = TripManagerUiState(
+            tripId = tripId,
+            isLoadingTrip = true
+        )
+
+        viewModelScope.launch {
+            try {
+                val details = tripSession.getTripDetails(tripId)
+                nextSegmentId = (details.draft.segments.size + 1).toLong()
+
+                _uiState.value = TripManagerUiState(
+                    tripId = details.id,
+                    title = details.draft.title,
+                    description = details.draft.description.orEmpty(),
+                    startDateMillis = details.draft.startDateMillis,
+                    hasEndDate = details.draft.endDateMillis != null,
+                    endDateMillis = details.draft.endDateMillis,
+                    segments = details.draft.segments,
+                    isLoadingTrip = false
+                )
+            } catch (exception: CancellationException) {
+                throw exception
+            } catch (exception: Exception) {
+                _uiState.update {
+                    it.copy(
+                        isLoadingTrip = false,
+                        errorMessage = exception.message
+                            ?: "Nie udało się pobrać danych podróży."
+                    )
+                }
+            }
+        }
+    }
     private var nextSegmentId = 2L
+    private var loadedTripId: String? = null
     private var placeSearchJob: Job? = null
 
     fun onTitleChange(value: String) {
@@ -258,7 +303,11 @@ class TripManagerViewModel @Inject constructor(
 
         viewModelScope.launch {
             try {
-                tripSession.createTrip(draft)
+                if (state.tripId == null) {
+                    tripSession.createTrip(draft)
+                } else {
+                    tripSession.updateTrip(state.tripId, draft)
+                }
                 _uiState.update {
                     it.copy(isSaving = false, isSaved = true)
                 }

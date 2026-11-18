@@ -4,6 +4,8 @@ import com.example.map.domain.model.PlaceOption
 import com.example.map.domain.model.TripSegmentDraft
 
 data class TripManagerUiState(
+    val tripId: String? = null,
+    val isLoadingTrip: Boolean = false,
     val title: String = "",
     val description: String = "",
     val startDateMillis: Long? = null,

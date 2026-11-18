@@ -9,9 +9,12 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.example.map.ui.screens.ChangeEmailScreen
 import com.example.map.ui.screens.HomeScreen
 import com.example.map.ui.screens.LoginScreen
@@ -22,6 +25,7 @@ import com.example.map.ui.viewmodels.AuthViewModel
 import com.example.map.ui.viewmodels.ChangeEmailViewModel
 import com.example.map.ui.viewmodels.HomeViewModel
 import com.example.map.ui.viewmodels.SettingsViewModel
+import com.example.map.ui.viewmodels.TripListViewModel
 import com.example.map.ui.viewmodels.TripManagerViewModel
 
 private const val LOGIN_ROUTE = "login"
@@ -38,11 +42,12 @@ fun AppNavigation(
     homeViewModelFactory: @Composable () -> HomeViewModel = { hiltViewModel() },
     settingsViewModelFactory: @Composable () -> SettingsViewModel = { hiltViewModel() },
     changeEmailViewModelFactory: @Composable () -> ChangeEmailViewModel = { hiltViewModel() },
+    tripListViewModelFactory: @Composable () -> TripListViewModel = { hiltViewModel() },
     tripManagerViewModelFactory: @Composable () -> TripManagerViewModel = { hiltViewModel() }
-
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val navController = rememberNavController()
+    val currentBackStackEntry by navController.currentBackStackEntryAsState()
 
     val destination =
         if (uiState.isAuthenticated) HOME_ROUTE else LOGIN_ROUTE
@@ -99,37 +104,85 @@ fun AppNavigation(
             }
 
             composable(TRIP_LIST_ROUTE) {
+                val tripListViewModel = tripListViewModelFactory()
+                val tripListState by tripListViewModel.uiState.collectAsState()
+
+                LaunchedEffect(currentBackStackEntry) {
+                    if (
+                        currentBackStackEntry?.destination?.route ==
+                        TRIP_LIST_ROUTE
+                    ) {
+                        tripListViewModel.loadTrips()
+                    }
+                }
+
                 TripListScreen(
-                    onBackClick = { navController.popBackStack() }
+                    state = tripListState,
+                    onBackClick = { navController.popBackStack() },
+                    onSettingsClick = {
+                        navController.navigate(SETTINGS_ROUTE)
+                    },
+                    onLogoutClick = viewModel::logout,
+                    onRetryClick = tripListViewModel::loadTrips,
+                    onEditTrip = { tripId ->
+                        navController.navigate(
+                            "$TRIP_MANAGER_ROUTE?tripId=$tripId"
+                        )
+                    },
+                    onDeleteTrip = tripListViewModel::deleteTrip,
+                    onSearchTermChange = tripListViewModel::onSearchTermChange,
+                    onSortChange = tripListViewModel::onSortChange
                 )
             }
 
-            composable(TRIP_MANAGER_ROUTE) {
+            composable(
+                route = "$TRIP_MANAGER_ROUTE?tripId={tripId}",
+                arguments = listOf(
+                    navArgument("tripId") {
+                        type = NavType.StringType
+                        nullable = true
+                        defaultValue = null
+                    }
+                )
+            ) { backStackEntry ->
+                val tripId = backStackEntry.arguments?.getString("tripId")
                 val tripManagerViewModel = tripManagerViewModelFactory()
                 val tripManagerState by tripManagerViewModel.uiState.collectAsState()
+
+                LaunchedEffect(tripId) {
+                    tripManagerViewModel.loadTrip(tripId)
+                }
 
                 TripManagerScreen(
                     state = tripManagerState,
                     onBackClick = { navController.popBackStack() },
                     onTitleChange = tripManagerViewModel::onTitleChange,
                     onDescriptionChange = tripManagerViewModel::onDescriptionChange,
-                    onStartDateSelected = tripManagerViewModel::onStartDateSelected,
-                    onEndDateEnabledChange = tripManagerViewModel::onEndDateEnabledChange,
-                    onEndDateSelected = tripManagerViewModel::onEndDateSelected,
+                    onStartDateSelected =
+                        tripManagerViewModel::onStartDateSelected,
+                    onEndDateEnabledChange =
+                        tripManagerViewModel::onEndDateEnabledChange,
+                    onEndDateSelected =
+                        tripManagerViewModel::onEndDateSelected,
                     onAddSegment = tripManagerViewModel::addSegment,
                     onRemoveSegment = tripManagerViewModel::removeSegment,
-                    onTransportTypeChange = tripManagerViewModel::onTransportTypeChange,
-                    onOpenPlacePicker = tripManagerViewModel::openPlacePicker,
-                    onClosePlacePicker = tripManagerViewModel::closePlacePicker,
-                    onPlaceQueryChange = tripManagerViewModel::onPlaceQueryChange,
-                    onPlaceSelected = tripManagerViewModel::selectPlace,
+                    onMoveSegment = tripManagerViewModel::moveSegment,
+                    onTransportTypeChange =
+                        tripManagerViewModel::onTransportTypeChange,
+                    onOpenPlacePicker =
+                        tripManagerViewModel::openPlacePicker,
+                    onClosePlacePicker =
+                        tripManagerViewModel::closePlacePicker,
+                    onPlaceQueryChange =
+                        tripManagerViewModel::onPlaceQueryChange,
+                    onPlaceSelected =
+                        tripManagerViewModel::selectPlace,
                     onSaveTrip = tripManagerViewModel::saveTrip,
                     onTripCreated = { navController.popBackStack() },
-                    onMoveSegment = tripManagerViewModel::moveSegment,
                     onSettingsClick = {
                         navController.navigate(SETTINGS_ROUTE)
                     },
-                    onLogoutClick = viewModel::logout,
+                    onLogoutClick = viewModel::logout
                 )
             }
 
@@ -149,9 +202,12 @@ fun AppNavigation(
                     onChangeEmailClick = {
                         navController.navigate(CHANGE_EMAIL_ROUTE)
                     },
-                    onDeleteAccountClick = settingsViewModel::showDeleteDialog,
-                    onDismissDeleteDialog = settingsViewModel::dismissDeleteDialog,
-                    onConfirmDeleteAccount = settingsViewModel::deleteAccount
+                    onDeleteAccountClick =
+                        settingsViewModel::showDeleteDialog,
+                    onDismissDeleteDialog =
+                        settingsViewModel::dismissDeleteDialog,
+                    onConfirmDeleteAccount =
+                        settingsViewModel::deleteAccount
                 )
             }
 
@@ -161,13 +217,21 @@ fun AppNavigation(
 
                 ChangeEmailScreen(
                     uiState = changeEmailState,
-                    onNewEmailChange = changeEmailViewModel::onNewEmailChange,
-                    onCodeChange = changeEmailViewModel::onCodeChange,
-                    onSubmitEmail = changeEmailViewModel::submitNewEmail,
-                    onSubmitCode = changeEmailViewModel::submitCode,
-                    onBackToEmail = changeEmailViewModel::backToEmailEntry,
+                    onNewEmailChange =
+                        changeEmailViewModel::onNewEmailChange,
+                    onCodeChange =
+                        changeEmailViewModel::onCodeChange,
+                    onSubmitEmail =
+                        changeEmailViewModel::submitNewEmail,
+                    onSubmitCode =
+                        changeEmailViewModel::submitCode,
+                    onBackToEmail =
+                        changeEmailViewModel::backToEmailEntry,
                     onDone = {
-                        navController.popBackStack(SETTINGS_ROUTE, inclusive = false)
+                        navController.popBackStack(
+                            SETTINGS_ROUTE,
+                            inclusive = false
+                        )
                     },
                     onBackClick = { navController.popBackStack() }
                 )
