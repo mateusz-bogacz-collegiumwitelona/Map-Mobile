@@ -9,6 +9,8 @@ import com.example.map.domain.usecase.AuthSession
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.util.concurrent.CancellationException
 import javax.inject.Inject
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -27,6 +29,8 @@ class AuthViewModel @Inject constructor(
         )
     )
     val uiState = _uiState.asStateFlow()
+
+    private var hydrateProfileJob: Job? = null
 
     init {
         viewModelScope.launch {
@@ -106,7 +110,8 @@ class AuthViewModel @Inject constructor(
     }
 
     private fun hydrateProfile() {
-        viewModelScope.launch {
+        hydrateProfileJob?.cancel()
+        hydrateProfileJob = viewModelScope.launch {
             try {
                 accountSession.refreshProfile()
             } catch (cancelled: CancellationException) {
@@ -115,6 +120,11 @@ class AuthViewModel @Inject constructor(
                 // Nieudane pobranie profilu nie może blokować logowania ani nawigacji.
             }
         }
+    }
+
+    private suspend fun cancelProfileHydrationAndWait() {
+        hydrateProfileJob?.cancelAndJoin()
+        hydrateProfileJob = null
     }
 
     fun clearErrors() {
@@ -134,6 +144,10 @@ class AuthViewModel @Inject constructor(
             _uiState.update {
                 it.copy(isLoading = true, errorMessage = null)
             }
+
+            // Zatrzymaj pobieranie profilu, zanim sesja zostanie wyczyszczona,
+            // żeby spóźniona odpowiedź nie nadpisała wylogowanego stanu.
+            cancelProfileHydrationAndWait()
 
             var logoutError: String? = null
 
@@ -161,6 +175,10 @@ class AuthViewModel @Inject constructor(
     }
 
     fun onAccountDeleted() {
+        // Anulowanie jest kooperatywne; gdyby odpowiedź zdążyła wrócić przed anulowaniem,
+        // AccountSession.clear() unieważnia ją przez licznik generacji sesji.
+        hydrateProfileJob?.cancel()
+        hydrateProfileJob = null
         authSession.clearLocalSession()
         accountSession.clear()
         _uiState.value = AuthUiState(isAuthenticated = false)

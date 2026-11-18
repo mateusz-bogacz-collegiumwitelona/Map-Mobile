@@ -7,6 +7,9 @@ import com.example.map.domain.usecase.AccountSession
 import com.example.map.testing.FakeAccountRepository
 import com.example.map.testing.FakeProfileStorage
 import com.example.map.testing.FakeUserProfileRepository
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -194,5 +197,61 @@ class AccountSessionTest {
         assertNull(storage.getEmail())
         assertEquals(UserProfile(), session.profile.value)
         assertEquals("", session.email.value)
+    }
+
+    @Test
+    fun lateRefreshResponseAfterClearDoesNotRepopulateSession() = runTest {
+        val gate = CompletableDeferred<Unit>()
+        val repository = FakeUserProfileRepository().apply {
+            remoteProfile = UserProfile(
+                firstName = "Anna",
+                lastName = "Nowak",
+                isPublic = true
+            )
+            getProfileGate = gate
+        }
+        val storage = FakeProfileStorage(
+            initialProfile = storedProfile,
+            initialEmail = "user@example.com"
+        )
+        val session = session(repository = repository, storage = storage)
+
+        val refresh = launch { session.refreshProfile() }
+        runCurrent()
+        assertEquals(1, repository.getProfileCalls)
+
+        session.clear()
+
+        gate.complete(Unit)
+        refresh.join()
+
+        assertNull(storage.getProfile())
+        assertNull(storage.getEmail())
+        assertEquals(UserProfile(), session.profile.value)
+        assertEquals("", session.email.value)
+    }
+
+    @Test
+    fun nameUpdateFinishingAfterClearIsNotPersisted() = runTest {
+        val gate = CompletableDeferred<Unit>()
+        val repository = FakeUserProfileRepository().apply {
+            updateNamesGate = gate
+        }
+        val storage = FakeProfileStorage(
+            initialProfile = storedProfile,
+            initialEmail = "user@example.com"
+        )
+        val session = session(repository = repository, storage = storage)
+
+        val update = launch { session.updateNames("Anna", "Nowak") }
+        runCurrent()
+
+        session.clear()
+
+        gate.complete(Unit)
+        update.join()
+
+        assertNull(storage.getProfile())
+        assertEquals(UserProfile(), session.profile.value)
     }
 }

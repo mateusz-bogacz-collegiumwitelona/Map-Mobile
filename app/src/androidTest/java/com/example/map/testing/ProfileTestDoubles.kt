@@ -16,6 +16,7 @@ class FakeUserProfileRepository : ProfileRepository {
 
     var updateNamesGate: CompletableDeferred<Unit>? = null
     var setVisibilityGate: CompletableDeferred<Unit>? = null
+    var getProfileGate: CompletableDeferred<Unit>? = null
 
     var getProfileCalls = 0
     var updateNamesCalls = 0
@@ -27,6 +28,7 @@ class FakeUserProfileRepository : ProfileRepository {
     override suspend fun getProfile(): UserProfile? {
         getProfileCalls++
         profileError?.let { throw it }
+        getProfileGate?.await()
         return remoteProfile
     }
 

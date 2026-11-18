@@ -7,6 +7,7 @@ import com.example.map.domain.model.UserProfile
 import com.example.map.domain.repository.AccountRepository
 import com.example.map.domain.repository.ProfileRepository
 import com.example.map.domain.repository.ProfileStorage
+import java.util.concurrent.atomic.AtomicLong
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -24,6 +25,10 @@ class AccountSession(
     )
     val profile: StateFlow<UserProfile> = _profile.asStateFlow()
 
+    // Incremented on every clear() so responses that arrive after logout or account
+    // deletion are discarded instead of repopulating the session.
+    private val sessionGeneration = AtomicLong(0)
+
     fun rememberEmail(email: String) {
         val normalized = email.trim()
         if (normalized.isEmpty()) return
@@ -33,22 +38,25 @@ class AccountSession(
     }
 
     suspend fun refreshProfile() {
+        val generation = sessionGeneration.get()
         val remoteProfile = profileRepository.getProfile() ?: return
-        persist(remoteProfile)
+        persistIfSessionActive(remoteProfile, generation)
     }
 
     suspend fun updateNames(firstName: String, lastName: String): ProfileUpdateResult {
+        val generation = sessionGeneration.get()
         val normalizedFirstName = firstName.trim()
         val normalizedLastName = lastName.trim()
 
         val result = profileRepository.updateNames(normalizedFirstName, normalizedLastName)
 
         if (result is ProfileUpdateResult.Success) {
-            persist(
+            persistIfSessionActive(
                 _profile.value.copy(
                     firstName = normalizedFirstName,
                     lastName = normalizedLastName
-                )
+                ),
+                generation
             )
         }
 
@@ -56,10 +64,11 @@ class AccountSession(
     }
 
     suspend fun updateVisibility(isPublic: Boolean): ProfileUpdateResult {
+        val generation = sessionGeneration.get()
         val result = profileRepository.setVisibility(isPublic)
 
         if (result is ProfileUpdateResult.Success) {
-            persist(_profile.value.copy(isPublic = isPublic))
+            persistIfSessionActive(_profile.value.copy(isPublic = isPublic), generation)
         }
 
         return result
@@ -69,9 +78,10 @@ class AccountSession(
         accountRepository.requestEmailChange(newEmail.trim())
 
     suspend fun confirmEmailChange(code: String, newEmail: String): EmailChangeResult {
+        val generation = sessionGeneration.get()
         val result = accountRepository.confirmEmailChange(code)
 
-        if (result is EmailChangeResult.Success) {
+        if (result is EmailChangeResult.Success && sessionGeneration.get() == generation) {
             val normalized = newEmail.trim()
             profileStorage.saveEmail(normalized)
             _email.value = normalized
@@ -84,9 +94,15 @@ class AccountSession(
         accountRepository.deleteAccount()
 
     fun clear() {
+        sessionGeneration.incrementAndGet()
         profileStorage.clear()
         _email.value = ""
         _profile.value = UserProfile()
+    }
+
+    private fun persistIfSessionActive(profile: UserProfile, generation: Long) {
+        if (sessionGeneration.get() != generation) return
+        persist(profile)
     }
 
     private fun persist(profile: UserProfile) {

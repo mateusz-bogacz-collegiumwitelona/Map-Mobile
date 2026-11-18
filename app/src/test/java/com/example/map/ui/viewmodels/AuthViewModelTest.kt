@@ -10,6 +10,7 @@ import com.example.map.testing.FakeProfileStorage
 import com.example.map.testing.FakeTokenStorage
 import com.example.map.testing.FakeUserProfileRepository
 import java.io.IOException
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -200,6 +201,90 @@ class AuthViewModelTest {
         assertFalse(viewModel.uiState.value.isAuthenticated)
         assertNull(profileStorage.getEmail())
         assertNull(profileStorage.getProfile())
+        assertEquals(UserProfile(), viewModel.uiState.value.profile)
+    }
+
+    @Test
+    fun logoutDuringProfileHydrationDoesNotRestoreClearedProfile() = runTest(dispatcher) {
+        val gate = CompletableDeferred<Unit>()
+        val profileRepository = FakeUserProfileRepository().apply {
+            remoteProfile = UserProfile(firstName = "Anna", lastName = "Nowak")
+            getProfileGate = gate
+        }
+        val profileStorage = FakeProfileStorage(
+            initialProfile = UserProfile(firstName = "Jan", lastName = "Kowalski"),
+            initialEmail = "user@example.com"
+        )
+        val tokenStorage = FakeTokenStorage(
+            AuthTokens(accessToken = "access-test", refreshToken = "refresh-test")
+        )
+        val accountSession = AccountSession(
+            accountRepository = FakeAccountRepository(),
+            profileRepository = profileRepository,
+            profileStorage = profileStorage
+        )
+        val viewModel = AuthViewModel(
+            authSession = AuthSession(tokenStorage, FakeAuthRepository()),
+            accountSession = accountSession
+        )
+
+        viewModel.login("user@example.com", "Password123!")
+        advanceUntilIdle()
+        assertEquals(1, profileRepository.getProfileCalls)
+
+        viewModel.logout()
+        advanceUntilIdle()
+
+        // Spóźniona odpowiedź GET api/user wraca dopiero po wyczyszczeniu sesji.
+        gate.complete(Unit)
+        advanceUntilIdle()
+
+        assertFalse(viewModel.uiState.value.isAuthenticated)
+        assertNull(profileStorage.getProfile())
+        assertNull(profileStorage.getEmail())
+        assertEquals(UserProfile(), accountSession.profile.value)
+        assertEquals(UserProfile(), viewModel.uiState.value.profile)
+    }
+
+    @Test
+    fun accountDeletionDuringProfileHydrationDoesNotRestoreClearedProfile() = runTest(dispatcher) {
+        val gate = CompletableDeferred<Unit>()
+        val profileRepository = FakeUserProfileRepository().apply {
+            remoteProfile = UserProfile(firstName = "Anna", lastName = "Nowak")
+            getProfileGate = gate
+        }
+        val profileStorage = FakeProfileStorage(
+            initialProfile = UserProfile(firstName = "Jan", lastName = "Kowalski"),
+            initialEmail = "user@example.com"
+        )
+        val accountSession = AccountSession(
+            accountRepository = FakeAccountRepository(),
+            profileRepository = profileRepository,
+            profileStorage = profileStorage
+        )
+        val viewModel = AuthViewModel(
+            authSession = AuthSession(
+                FakeTokenStorage(
+                    AuthTokens(accessToken = "access-test", refreshToken = "refresh-test")
+                ),
+                FakeAuthRepository()
+            ),
+            accountSession = accountSession
+        )
+
+        viewModel.login("user@example.com", "Password123!")
+        advanceUntilIdle()
+        assertEquals(1, profileRepository.getProfileCalls)
+
+        viewModel.onAccountDeleted()
+
+        gate.complete(Unit)
+        advanceUntilIdle()
+
+        assertFalse(viewModel.uiState.value.isAuthenticated)
+        assertNull(profileStorage.getProfile())
+        assertNull(profileStorage.getEmail())
+        assertEquals(UserProfile(), accountSession.profile.value)
         assertEquals(UserProfile(), viewModel.uiState.value.profile)
     }
 }
