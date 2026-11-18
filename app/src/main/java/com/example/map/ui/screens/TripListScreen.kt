@@ -66,7 +66,8 @@ fun TripListScreen(
     onEditTrip: (String) -> Unit,
     onDeleteTrip: (String) -> Unit,
     onSearchTermChange: (String) -> Unit = {},
-    onSortChange: (String, Boolean) -> Unit = { _, _ -> }
+    onSortChange: (String, Boolean) -> Unit = { _, _ -> },
+    onShowTripDetails: (String, Double) -> Unit = { _, _ -> }
 ) {
     var tripPendingDeletion by remember {
         mutableStateOf<TripSummary?>(null)
@@ -286,6 +287,9 @@ fun TripListScreen(
                             onEditClick = { onEditTrip(trip.id) },
                             onDeleteClick = {
                                 tripPendingDeletion = trip
+                            },
+                            onShowDetailsClick = {
+                                onShowTripDetails(trip.id, trip.totalDistanceKm)
                             }
                         )
                     }
@@ -331,7 +335,8 @@ fun TripListScreen(
 private fun TripSummaryCard(
     trip: TripSummary,
     onEditClick: () -> Unit,
-    onDeleteClick: () -> Unit
+    onDeleteClick: () -> Unit,
+    onShowDetailsClick: () -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -397,10 +402,10 @@ private fun TripSummaryCard(
             verticalAlignment = Alignment.CenterVertically
         ) {
             TripAction(
-                text = "Pokaż trasę",
+                text = "Szczegóły",
                 tag = "trip_show_route_${trip.id}",
                 color = ButtonLight,
-                onClick = {}
+                onClick = onShowDetailsClick
             )
             TripAction(
                 text = "Edytuj",

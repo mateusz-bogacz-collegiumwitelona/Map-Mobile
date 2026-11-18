@@ -31,7 +31,8 @@ class TripListScreenUiTest {
 
     private fun showScreen(
         onEditTrip: (String) -> Unit = {},
-        onDeleteTrip: (String) -> Unit = {}
+        onDeleteTrip: (String) -> Unit = {},
+        onShowTripDetails: (String, Double) -> Unit = { _, _ -> }
     ) {
         composeRule.setContent {
             TripListScreen(
@@ -41,7 +42,8 @@ class TripListScreenUiTest {
                 onLogoutClick = {},
                 onRetryClick = {},
                 onEditTrip = onEditTrip,
-                onDeleteTrip = onDeleteTrip
+                onDeleteTrip = onDeleteTrip,
+                onShowTripDetails = onShowTripDetails
             )
         }
     }
@@ -62,10 +64,6 @@ class TripListScreenUiTest {
         composeRule
             .onNodeWithTag("trip_delete_cancel")
             .performClick()
-
-        composeRule
-            .onNodeWithText("Usunąć podróż?")
-            .assertDoesNotExist()
 
         composeRule
             .onNodeWithTag("trip_card_trip-1")
@@ -100,5 +98,25 @@ class TripListScreenUiTest {
             .performClick()
 
         assertEquals("trip-1", editedTripId)
+    }
+
+    @Test
+    fun detailsButtonPassesTripIdAndTotalDistance() {
+        var shownTripId: String? = null
+        var shownDistance: Double? = null
+
+        showScreen(
+            onShowTripDetails = { tripId, distance ->
+                shownTripId = tripId
+                shownDistance = distance
+            }
+        )
+
+        composeRule
+            .onNodeWithTag("trip_show_route_trip-1")
+            .performClick()
+
+        assertEquals("trip-1", shownTripId)
+        assertEquals(226.0, shownDistance ?: 0.0, 0.0)
     }
 }

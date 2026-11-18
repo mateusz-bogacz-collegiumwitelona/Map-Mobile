@@ -23,6 +23,7 @@ import java.util.TimeZone
 import javax.inject.Inject
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
+import com.example.map.domain.model.TripSegmentDetails
 
 class RemoteTripRepository @Inject constructor(
     private val tripApi: TripApi,
@@ -150,28 +151,42 @@ class RemoteTripRepository @Inject constructor(
     )
 
     private fun TripDetailsDto.toDomain(): TripDetails {
+        val orderedSegments = segments.sortedBy { it.orderIndex }
+
         val draft = TripDraft(
             title = title,
             description = description,
             startDateMillis = parseUtc(startDate),
             endDateMillis = endDate?.let(::parseUtc),
-            segments = segments
-                .sortedBy { it.orderIndex }
-                .mapIndexed { index, segment ->
-                    TripSegmentDraft(
-                        id = (index + 1).toLong(),
-                        origin = segment.origin.toPlaceOption("origin-$index"),
-                        destination = segment.destination.toPlaceOption("destination-$index"),
-                        transportType = TripTransportType.entries.firstOrNull {
-                            it.apiValue.equals(segment.transportType, ignoreCase = true)
-                        } ?: TripTransportType.OTHER
-                    )
-                }
+            segments = orderedSegments.mapIndexed { index, segment ->
+                TripSegmentDraft(
+                    id = (index + 1).toLong(),
+                    origin = segment.origin.toPlaceOption("origin-$index"),
+                    destination = segment.destination.toPlaceOption("destination-$index"),
+                    transportType = TripTransportType.entries.firstOrNull {
+                        it.apiValue.equals(segment.transportType, ignoreCase = true)
+                    } ?: TripTransportType.OTHER
+                )
+            }
         )
+
+        val segmentDetails = orderedSegments.map { segment ->
+            TripSegmentDetails(
+                orderIndex = segment.orderIndex,
+                originName = segment.origin.name,
+                destinationName = segment.destination.name,
+                transportType = TripTransportType.entries.firstOrNull {
+                    it.apiValue.equals(segment.transportType, ignoreCase = true)
+                } ?: TripTransportType.OTHER,
+                distanceKm = segment.distanceKm,
+                isFallbackRoute = segment.isFallbackRoute
+            )
+        }
 
         return TripDetails(
             id = id,
-            draft = draft
+            draft = draft,
+            segmentDetails = segmentDetails
         )
     }
 

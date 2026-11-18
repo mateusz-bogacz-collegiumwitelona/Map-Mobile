@@ -27,6 +27,8 @@ import com.example.map.ui.viewmodels.HomeViewModel
 import com.example.map.ui.viewmodels.SettingsViewModel
 import com.example.map.ui.viewmodels.TripListViewModel
 import com.example.map.ui.viewmodels.TripManagerViewModel
+import com.example.map.ui.screens.TripDetailsScreen
+import com.example.map.ui.viewmodels.TripDetailsViewModel
 
 private const val LOGIN_ROUTE = "login"
 private const val HOME_ROUTE = "home"
@@ -34,6 +36,7 @@ private const val SETTINGS_ROUTE = "settings"
 private const val CHANGE_EMAIL_ROUTE = "change_email"
 private const val TRIP_LIST_ROUTE = "trip_list"
 private const val TRIP_MANAGER_ROUTE = "trip_manager"
+private const val TRIP_DETAILS_ROUTE = "trip_details"
 
 @Composable
 fun AppNavigation(
@@ -43,7 +46,8 @@ fun AppNavigation(
     settingsViewModelFactory: @Composable () -> SettingsViewModel = { hiltViewModel() },
     changeEmailViewModelFactory: @Composable () -> ChangeEmailViewModel = { hiltViewModel() },
     tripListViewModelFactory: @Composable () -> TripListViewModel = { hiltViewModel() },
-    tripManagerViewModelFactory: @Composable () -> TripManagerViewModel = { hiltViewModel() }
+    tripManagerViewModelFactory: @Composable () -> TripManagerViewModel = { hiltViewModel() },
+    tripDetailsViewModelFactory: @Composable () -> TripDetailsViewModel = { hiltViewModel() }
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val navController = rememberNavController()
@@ -131,7 +135,52 @@ fun AppNavigation(
                     },
                     onDeleteTrip = tripListViewModel::deleteTrip,
                     onSearchTermChange = tripListViewModel::onSearchTermChange,
-                    onSortChange = tripListViewModel::onSortChange
+                    onSortChange = tripListViewModel::onSortChange,
+                    onShowTripDetails = { tripId, totalDistanceKm ->
+                        navController.navigate(
+                            "$TRIP_DETAILS_ROUTE/$tripId?totalDistanceKm=$totalDistanceKm"
+                        )
+                    }
+                )
+            }
+
+            composable(
+                route = "$TRIP_DETAILS_ROUTE/{tripId}?totalDistanceKm={totalDistanceKm}",
+                arguments = listOf(
+                    navArgument("tripId") {
+                        type = NavType.StringType
+                    },
+                    navArgument("totalDistanceKm") {
+                        type = NavType.StringType
+                        defaultValue = "0.0"
+                    }
+                )
+            ) { backStackEntry ->
+                val tripId = backStackEntry.arguments
+                    ?.getString("tripId")
+                    .orEmpty()
+                val totalDistanceKm = backStackEntry.arguments
+                    ?.getString("totalDistanceKm")
+                    ?.toDoubleOrNull()
+                    ?: 0.0
+
+                val tripDetailsViewModel = tripDetailsViewModelFactory()
+                val tripDetailsState by tripDetailsViewModel.uiState.collectAsState()
+
+                LaunchedEffect(tripId, totalDistanceKm) {
+                    tripDetailsViewModel.loadTrip(tripId, totalDistanceKm)
+                }
+
+                TripDetailsScreen(
+                    state = tripDetailsState,
+                    onBackClick = { navController.popBackStack() },
+                    onSettingsClick = {
+                        navController.navigate(SETTINGS_ROUTE)
+                    },
+                    onLogoutClick = viewModel::logout,
+                    onRetryClick = {
+                        tripDetailsViewModel.loadTrip(tripId, totalDistanceKm)
+                    }
                 )
             }
 
