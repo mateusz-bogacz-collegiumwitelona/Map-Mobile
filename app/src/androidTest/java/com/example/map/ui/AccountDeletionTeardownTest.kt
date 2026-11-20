@@ -13,12 +13,14 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.example.map.domain.model.AccountDeletionError
 import com.example.map.domain.model.AccountDeletionResult
 import com.example.map.domain.model.AuthTokens
+import com.example.map.domain.model.UserProfile
 import com.example.map.domain.usecase.AccountSession
 import com.example.map.domain.usecase.AuthSession
 import com.example.map.testing.FakeAccountRepository
 import com.example.map.testing.FakeAuthRepository
 import com.example.map.testing.FakeProfileStorage
 import com.example.map.testing.FakeTokenStorage
+import com.example.map.testing.FakeUserProfileRepository
 import com.example.map.ui.navigation.AppNavigation
 import com.example.map.ui.viewmodels.AuthViewModel
 import com.example.map.ui.viewmodels.ChangeEmailViewModel
@@ -57,8 +59,15 @@ class AccountDeletionTeardownTest {
                 refreshToken = "refresh-test-token"
             )
         )
-        profileStorage = FakeProfileStorage("user@example.com")
-        accountSession = AccountSession(repository, profileStorage)
+        profileStorage = FakeProfileStorage(
+            initialProfile = UserProfile(firstName = "Jan", lastName = "Kowalski"),
+            initialEmail = "user@example.com"
+        )
+        accountSession = AccountSession(
+            accountRepository = repository,
+            profileRepository = FakeUserProfileRepository(),
+            profileStorage = profileStorage
+        )
         authViewModel = AuthViewModel(
             authSession = AuthSession(tokenStorage, authRepository),
             accountSession = accountSession
@@ -99,7 +108,9 @@ class AccountDeletionTeardownTest {
         assertNull(tokenStorage.getAccessToken())
         assertNull(tokenStorage.getRefreshToken())
         assertNull(profileStorage.getEmail())
+        assertNull(profileStorage.getProfile())
         assertEquals("", accountSession.email.value)
+        assertEquals(UserProfile(), accountSession.profile.value)
         assertEquals(0, authRepository.refreshCalls)
         assertEquals(0, authRepository.logoutCalls)
 

@@ -10,13 +10,16 @@ import androidx.test.espresso.Espresso
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.example.map.domain.model.AuthenticatedAccount
 import com.example.map.domain.model.AuthTokens
+import com.example.map.domain.model.UserProfile
 import com.example.map.domain.repository.AuthRepository
 import com.example.map.domain.usecase.AccountSession
 import com.example.map.domain.usecase.AuthSession
 import com.example.map.testing.FakeAccountRepository
 import com.example.map.testing.FakeProfileStorage
+import com.example.map.testing.FakeUserProfileRepository
 import com.example.map.ui.navigation.AppNavigation
 import com.example.map.ui.viewmodels.AuthViewModel
+import com.example.map.ui.viewmodels.ProfilePrivacySettingsViewModel
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -32,7 +35,9 @@ class MainActivityLogoutTest {
     val composeRule = createComposeRule()
 
     private lateinit var tokenStorage: FakeTokenStorage
-    private lateinit var authViewModel: AuthViewModel
+    private lateinit var profileStorage: FakeProfileStorage
+    private lateinit var accountSession: AccountSession
+    private lateinit var authSession: AuthSession
 
     private var remotelyLoggedOutAccessToken: String? = null
     private var remotelyLoggedOutRefreshToken: String? = null
@@ -47,6 +52,10 @@ class MainActivityLogoutTest {
                 accessToken = "access-test-token",
                 refreshToken = "refresh-test-token"
             )
+        )
+        profileStorage = FakeProfileStorage(
+            initialProfile = UserProfile(firstName = "Jan", lastName = "Kowalski"),
+            initialEmail = "user@example.com"
         )
 
         val authRepository = object : AuthRepository {
@@ -72,22 +81,39 @@ class MainActivityLogoutTest {
             }
         }
 
-        authViewModel = AuthViewModel(
-            authSession = AuthSession(tokenStorage, authRepository),
-            accountSession = AccountSession(
-                FakeAccountRepository(),
-                FakeProfileStorage()
-            )
+        authSession = AuthSession(tokenStorage, authRepository)
+        accountSession = AccountSession(
+            accountRepository = FakeAccountRepository(),
+            profileRepository = FakeUserProfileRepository(),
+            profileStorage = profileStorage
+        )
+
+        val authViewModel = AuthViewModel(
+            authSession = authSession,
+            accountSession = accountSession
+        )
+        val profileViewModel = ProfilePrivacySettingsViewModel(
+            accountSession = accountSession,
+            authSession = authSession
         )
 
         composeRule.setContent {
-            AppNavigation(viewModel = authViewModel)
+            AppNavigation(
+                viewModel = authViewModel,
+                profileViewModelFactory = { profileViewModel }
+            )
         }
     }
 
     @Test
-    fun logoutRevokesBackendSessionClearsTokensAndResetsNavigation() {
+    fun homeShowsProfileLoadedFromSession() {
         composeRule.onNodeWithText("Jan Kowalski").assertIsDisplayed()
+    }
+
+    @Test
+    fun logoutRevokesBackendSessionClearsLocalProfileAndResetsNavigation() {
+        composeRule.onNodeWithText("Jan Kowalski").assertIsDisplayed()
+
         composeRule.onNodeWithContentDescription("Wyloguj").performClick()
         composeRule.onNodeWithText("Zaloguj się").assertIsDisplayed()
 
@@ -96,6 +122,10 @@ class MainActivityLogoutTest {
             assertEquals("refresh-test-token", remotelyLoggedOutRefreshToken)
             assertNull(tokenStorage.getAccessToken())
             assertNull(tokenStorage.getRefreshToken())
+            assertNull(profileStorage.getEmail())
+            assertNull(profileStorage.getProfile())
+            assertEquals("", accountSession.email.value)
+            assertEquals(UserProfile(), accountSession.profile.value)
         }
 
         Espresso.pressBackUnconditionally()
@@ -109,5 +139,16 @@ class MainActivityLogoutTest {
         }
 
         assertTrue(!returnedToHome)
+    }
+    @Test
+    fun profileIconOpensProfilePrivacyScreenAndBackReturnsHome() {
+        composeRule.onNodeWithContentDescription("Profil i prywatność").performClick()
+
+        composeRule.onNodeWithText("Dane konta").assertIsDisplayed()
+        composeRule.onNodeWithText("user@example.com").assertIsDisplayed()
+
+        composeRule.onNodeWithContentDescription("Wróć").performClick()
+
+        composeRule.onNodeWithText("Moje podróże").assertIsDisplayed()
     }
 }

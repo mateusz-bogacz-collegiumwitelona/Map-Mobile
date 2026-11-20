@@ -30,6 +30,9 @@ import com.example.map.ui.theme.SurfaceGray
 
 @Composable
 fun HomeScreen(
+    profileName: String,
+    profileInitials: String,
+    onProfileClick: () -> Unit,
     onLogoutClick: () -> Unit,
     onSettingsClick: () -> Unit = {}
 ) {
@@ -42,6 +45,7 @@ fun HomeScreen(
     ) {
         Header(
             title = "Map",
+            onProfileClick = onProfileClick,
             onSettingsClick = onSettingsClick,
             onLogoutClick = onLogoutClick
         )
@@ -62,11 +66,11 @@ fun HomeScreen(
                     .background(SurfaceGray),
                 contentAlignment = Alignment.Center
             ) {
-                Text(text = "JK", color = Color.White, fontSize = 24.sp)
+                Text(text = profileInitials, color = Color.White, fontSize = 24.sp)
             }
 
             Spacer(modifier = Modifier.height(8.dp))
-            Text(text = "Jan Kowalski", color = Color.White, fontSize = 18.sp)
+            Text(text = profileName, color = Color.White, fontSize = 18.sp)
 
             Spacer(modifier = Modifier.height(24.dp))
 

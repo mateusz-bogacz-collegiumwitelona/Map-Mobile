@@ -12,25 +12,32 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.map.domain.model.UserProfile
 import com.example.map.ui.screens.ChangeEmailScreen
 import com.example.map.ui.screens.HomeScreen
 import com.example.map.ui.screens.LoginScreen
+import com.example.map.ui.screens.ProfilePrivacySettingsScreen
 import com.example.map.ui.screens.SettingsScreen
 import com.example.map.ui.viewmodels.AuthViewModel
 import com.example.map.ui.viewmodels.ChangeEmailViewModel
+import com.example.map.ui.viewmodels.ProfilePrivacySettingsViewModel
 import com.example.map.ui.viewmodels.SettingsViewModel
 
 private const val LOGIN_ROUTE = "login"
 private const val HOME_ROUTE = "home"
 private const val SETTINGS_ROUTE = "settings"
 private const val CHANGE_EMAIL_ROUTE = "change_email"
+private const val PROFILE_PRIVACY_ROUTE = "profile_privacy"
 
 @Composable
 fun AppNavigation(
     viewModel: AuthViewModel,
     modifier: Modifier = Modifier,
     settingsViewModelFactory: @Composable () -> SettingsViewModel = { hiltViewModel() },
-    changeEmailViewModelFactory: @Composable () -> ChangeEmailViewModel = { hiltViewModel() }
+    changeEmailViewModelFactory: @Composable () -> ChangeEmailViewModel = { hiltViewModel() },
+    profileViewModelFactory: @Composable () -> ProfilePrivacySettingsViewModel = {
+        hiltViewModel()
+    }
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val navController = rememberNavController()
@@ -71,11 +78,32 @@ fun AppNavigation(
 
             composable(HOME_ROUTE) {
                 HomeScreen(
+                    profileName = uiState.profile.displayName(),
+                    profileInitials = uiState.profile.displayInitials(),
+                    onProfileClick = {
+                        navController.navigate(PROFILE_PRIVACY_ROUTE)
+                    },
                     onLogoutClick = {
                         viewModel.logout()
                     },
                     onSettingsClick = {
                         navController.navigate(SETTINGS_ROUTE)
+                    }
+                )
+            }
+
+            composable(PROFILE_PRIVACY_ROUTE) {
+                val profileViewModel = profileViewModelFactory()
+                val profileState by profileViewModel.uiState.collectAsState()
+
+                ProfilePrivacySettingsScreen(
+                    uiState = profileState,
+                    onFirstNameChange = profileViewModel::onFirstNameChange,
+                    onLastNameChange = profileViewModel::onLastNameChange,
+                    onVisibilityChange = profileViewModel::onVisibilityChange,
+                    onSaveClick = profileViewModel::save,
+                    onBackClick = {
+                        navController.popBackStack()
                     }
                 )
             }
@@ -125,4 +153,19 @@ fun AppNavigation(
             }
         }
     }
+}
+
+private fun UserProfile.displayName(): String =
+    listOf(firstName.trim(), lastName.trim())
+        .filter { it.isNotEmpty() }
+        .joinToString(" ")
+        .ifEmpty { "Użytkownik" }
+
+private fun UserProfile.displayInitials(): String {
+    val initials = listOf(firstName.trim(), lastName.trim())
+        .filter { it.isNotEmpty() }
+        .mapNotNull { it.firstOrNull()?.uppercaseChar() }
+        .joinToString("")
+
+    return initials.ifEmpty { "?" }
 }

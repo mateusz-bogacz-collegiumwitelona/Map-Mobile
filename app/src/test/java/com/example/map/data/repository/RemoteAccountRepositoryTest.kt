@@ -1,8 +1,11 @@
 package com.example.map.data.repository
 
+import com.example.map.data.remote.dto.ApiEnvelopeDto
 import com.example.map.data.remote.dto.ApiResultDto
 import com.example.map.data.remote.dto.ChangeEmailRequestDto
 import com.example.map.data.remote.dto.ConfirmEmailChangeRequestDto
+import com.example.map.data.remote.dto.EditUserNamesRequestDto
+import com.example.map.data.remote.dto.UserProfileDataDto
 import com.example.map.data.remote.service.UserApiService
 import com.example.map.domain.model.AccountDeletionError
 import com.example.map.domain.model.AccountDeletionResult
@@ -272,6 +275,20 @@ private class FakeUserApiService : UserApiService {
     var requestException: Exception? = null
     var confirmException: Exception? = null
     var deleteException: Exception? = null
+
+    override suspend fun getProfile(): Response<ApiEnvelopeDto<UserProfileDataDto>> {
+        error("Nie używane w testach konta.")
+    }
+
+    override suspend fun updateNames(
+        request: EditUserNamesRequestDto
+    ): Response<ApiResultDto> {
+        error("Nie używane w testach konta.")
+    }
+
+    override suspend fun setVisibility(isPublic: Boolean): Response<ApiResultDto> {
+        error("Nie używane w testach konta.")
+    }
 
     override suspend fun requestEmailChange(
         request: ChangeEmailRequestDto

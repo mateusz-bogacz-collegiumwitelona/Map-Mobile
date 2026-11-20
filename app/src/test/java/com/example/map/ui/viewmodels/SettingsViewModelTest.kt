@@ -5,6 +5,7 @@ import com.example.map.domain.model.AccountDeletionResult
 import com.example.map.domain.usecase.AccountSession
 import com.example.map.testing.FakeAccountRepository
 import com.example.map.testing.FakeProfileStorage
+import com.example.map.testing.FakeUserProfileRepository
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -37,7 +38,11 @@ class SettingsViewModelTest {
         Dispatchers.setMain(dispatcher)
         repository = FakeAccountRepository()
         profileStorage = FakeProfileStorage("user@example.com")
-        accountSession = AccountSession(repository, profileStorage)
+        accountSession = AccountSession(
+            accountRepository = repository,
+            profileRepository = FakeUserProfileRepository(),
+            profileStorage = profileStorage
+        )
         viewModel = SettingsViewModel(accountSession)
     }
 
