@@ -20,10 +20,11 @@ if (localPropertiesFile.isFile) {
     }
 }
 
-fun readApiBaseUrl(propertyName: String): String {
+fun readApiBaseUrl(propertyName: String, defaultValue: String? = null): String {
     val value = providers.gradleProperty(propertyName).orNull
         ?: providers.environmentVariable(propertyName).orNull
         ?: localProperties.getProperty(propertyName)
+        ?: defaultValue
         ?: throw org.gradle.api.GradleException(
             "Brak $propertyName. Ustaw tę wartość w local.properties, zmiennej środowiskowej albo przez -P."
         )
@@ -68,6 +69,8 @@ val developmentApiBaseUrl =
     readApiBaseUrl("MAP_API_BASE_URL_DEVELOPMENT")
 val productionApiBaseUrl =
     readApiBaseUrl("MAP_API_BASE_URL_PRODUCTION")
+val routingBaseUrl =
+    readApiBaseUrl("ROUTING_BASE_URL", "https://router.project-osrm.org/")
 
 android {
     namespace = "com.example.map"
@@ -83,6 +86,12 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "com.example.map.CustomTestRunner"
+
+        buildConfigField(
+            "String",
+            "ROUTING_BASE_URL",
+            asBuildConfigString(routingBaseUrl)
+        )
     }
 
     flavorDimensions += "environment"

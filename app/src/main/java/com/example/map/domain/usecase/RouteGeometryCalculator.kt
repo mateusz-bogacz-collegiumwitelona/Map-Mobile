@@ -5,10 +5,13 @@ import com.example.map.domain.geo.GreatCircle
 import com.example.map.domain.model.GeoPoint
 import com.example.map.domain.model.RouteGeometry
 import com.example.map.domain.model.TransportType
+import com.example.map.domain.repository.RoadRouter
 
-class RouteGeometryCalculator {
+class RouteGeometryCalculator(
+    private val roadRouter: RoadRouter
+) {
 
-    fun calculate(
+    suspend fun calculate(
         transportType: TransportType,
         origin: GeoPoint,
         destination: GeoPoint
@@ -28,11 +31,19 @@ class RouteGeometryCalculator {
                 isFallbackRoute = false
             )
 
-            TransportType.CAR -> RouteGeometry(
-                points = listOf(origin, destination),
-                distanceKm = distanceKm,
-                isFallbackRoute = true
-            )
+            TransportType.CAR -> roadRouter.route(origin, destination)
+                ?.let { road ->
+                    RouteGeometry(
+                        points = road.points,
+                        distanceKm = road.distanceKm,
+                        isFallbackRoute = false
+                    )
+                }
+                ?: RouteGeometry(
+                    points = listOf(origin, destination),
+                    distanceKm = distanceKm,
+                    isFallbackRoute = true
+                )
         }
     }
 }
