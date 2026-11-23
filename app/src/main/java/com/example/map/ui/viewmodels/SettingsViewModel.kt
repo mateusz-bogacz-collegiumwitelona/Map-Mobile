@@ -99,6 +99,7 @@ class SettingsViewModel @Inject constructor(
             AccountDeletionError.NOT_FOUND -> "Konto nie istnieje lub zostało już usunięte."
             AccountDeletionError.RATE_LIMITED ->
                 "Zbyt wiele żądań. Odczekaj chwilę i spróbuj ponownie."
+
             AccountDeletionError.NETWORK -> "Brak połączenia z internetem. Spróbuj ponownie."
             AccountDeletionError.UNKNOWN ->
                 message ?: "Nie udało się usunąć konta. Spróbuj ponownie."

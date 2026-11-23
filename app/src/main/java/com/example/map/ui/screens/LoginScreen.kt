@@ -1,6 +1,6 @@
 package com.example.map.ui.screens
 
-import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -17,6 +17,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
@@ -43,20 +45,19 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.foundation.Image
 import com.example.map.R
 import com.example.map.ui.theme.BackgroundDark
 import com.example.map.ui.theme.ButtonLight
 import com.example.map.ui.theme.SurfaceGray
 import com.example.map.ui.theme.TextGray
 import com.example.map.ui.viewmodels.AuthUiState
-import androidx.compose.foundation.text.KeyboardActions
 
 @Composable
 fun LoginScreen(
     state: AuthUiState,
     onLoginClick: (email: String, password: String) -> Unit,
-    onInputsChanged: () -> Unit
+    onInputsChanged: () -> Unit,
+    onRegisterClick: () -> Unit = {}
 ) {
     var email by rememberSaveable { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -168,6 +169,7 @@ fun LoginScreen(
             PlaceholderAction(
                 label = "Nie masz\njeszcze konta?",
                 buttonText = "Zarejestruj się",
+                onClick = onRegisterClick,
                 modifier = Modifier.weight(1f)
             )
 
@@ -262,6 +264,7 @@ private fun LoginInputField(
 private fun PlaceholderAction(
     label: String,
     buttonText: String,
+    onClick: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -279,7 +282,7 @@ private fun PlaceholderAction(
         Spacer(modifier = Modifier.height(6.dp))
 
         Button(
-            onClick = {},
+            onClick = onClick,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(38.dp),

@@ -8,8 +8,9 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.espresso.Espresso
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import com.example.map.domain.model.AuthenticatedAccount
 import com.example.map.domain.model.AuthTokens
+import com.example.map.domain.model.AuthenticatedAccount
+import com.example.map.domain.model.RegistrationResult
 import com.example.map.domain.model.UserProfile
 import com.example.map.domain.repository.AuthRepository
 import com.example.map.domain.session.AccountSession
@@ -79,6 +80,18 @@ class MainActivityLogoutTest {
                 remotelyLoggedOutAccessToken = accessToken
                 remotelyLoggedOutRefreshToken = refreshToken
             }
+
+            override suspend fun register(
+                firstName: String,
+                lastName: String,
+                email: String,
+                password: String,
+                confirmPassword: String,
+                bio: String?,
+                isPublic: Boolean
+            ): RegistrationResult {
+                error("Rejestracja nie jest używana w tym teście.")
+            }
         }
 
         authSession = AuthSession(tokenStorage, authRepository)
@@ -140,6 +153,7 @@ class MainActivityLogoutTest {
 
         assertTrue(!returnedToHome)
     }
+
     @Test
     fun profileIconOpensProfilePrivacyScreenAndBackReturnsHome() {
         composeRule.onNodeWithContentDescription("Profil i prywatność").performClick()

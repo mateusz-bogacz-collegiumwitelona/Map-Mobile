@@ -1,10 +1,11 @@
 package com.example.map.data.remote.service
 
 import com.example.map.data.remote.dto.common.ApiEnvelope
-import com.example.map.data.remote.dto.response.AuthResponse
-import com.example.map.data.remote.dto.request.LogoutRequest
 import com.example.map.data.remote.dto.request.LoginRequest
+import com.example.map.data.remote.dto.request.LogoutRequest
 import com.example.map.data.remote.dto.request.RefreshTokenRequest
+import com.example.map.data.remote.dto.request.RegisterRequest
+import com.example.map.data.remote.dto.response.AuthResponse
 import okhttp3.ResponseBody
 import retrofit2.Response
 import retrofit2.http.Body
@@ -27,4 +28,9 @@ interface AuthApiService {
         @Header("Authorization") authorization: String,
         @Body request: LogoutRequest
     ): Response<ResponseBody>
+
+    @POST("api/auth/register")
+    suspend fun register(
+        @Body request: RegisterRequest
+    ): Response<ApiEnvelope<Unit>>
 }

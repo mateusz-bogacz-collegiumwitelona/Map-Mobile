@@ -3,6 +3,8 @@ package com.example.map.di
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.example.map.BuildConfig
+import com.example.map.data.remote.service.AuthApiService
+import com.example.map.data.remote.service.UserApiService
 import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
 import dagger.hilt.android.EntryPointAccessors
@@ -19,8 +21,6 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import retrofit2.Retrofit
-import com.example.map.data.remote.service.AuthApiService
-import com.example.map.data.remote.service.UserApiService
 
 @HiltAndroidTest
 @RunWith(AndroidJUnit4::class)

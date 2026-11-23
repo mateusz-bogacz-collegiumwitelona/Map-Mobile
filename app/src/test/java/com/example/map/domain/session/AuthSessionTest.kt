@@ -1,12 +1,12 @@
-package com.example.map.domain
+package com.example.map.domain.session
 
 import com.example.map.domain.model.AuthException
 import com.example.map.domain.model.AuthFailure
 import com.example.map.domain.model.AuthTokens
 import com.example.map.domain.model.AuthenticatedAccount
+import com.example.map.domain.model.RegistrationResult
 import com.example.map.domain.repository.AuthRepository
 import com.example.map.domain.repository.TokenStorage
-import com.example.map.domain.session.AuthSession
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -230,6 +230,18 @@ class AuthSessionTest {
             refreshToken: String
         ) {
             onLogout(accessToken, refreshToken)
+        }
+
+        override suspend fun register(
+            firstName: String,
+            lastName: String,
+            email: String,
+            password: String,
+            confirmPassword: String,
+            bio: String?,
+            isPublic: Boolean
+        ): RegistrationResult {
+            error("Rejestracja nie jest używana w tym teście.")
         }
     }
 }

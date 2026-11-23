@@ -7,10 +7,10 @@ import com.example.map.domain.model.UserProfile
 import com.example.map.domain.repository.AccountRepository
 import com.example.map.domain.repository.ProfileRepository
 import com.example.map.domain.repository.ProfileStorage
-import java.util.concurrent.atomic.AtomicLong
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import java.util.concurrent.atomic.AtomicLong
 
 class AccountSession(
     private val accountRepository: AccountRepository,
@@ -25,8 +25,6 @@ class AccountSession(
     )
     val profile: StateFlow<UserProfile> = _profile.asStateFlow()
 
-    // Incremented on every clear() so responses that arrive after logout or account
-    // deletion are discarded instead of repopulating the session.
     private val sessionGeneration = AtomicLong(0)
 
     fun rememberEmail(email: String) {
@@ -99,6 +97,7 @@ class AccountSession(
         _email.value = ""
         _profile.value = UserProfile()
     }
+
 
     private fun persistIfSessionActive(profile: UserProfile, generation: Long) {
         if (sessionGeneration.get() != generation) return

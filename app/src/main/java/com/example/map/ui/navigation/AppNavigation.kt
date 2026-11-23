@@ -13,6 +13,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.map.domain.model.UserProfile
+import com.example.map.ui.auth.RegisterScreen
+import com.example.map.ui.auth.RegisterViewModel
 import com.example.map.ui.screens.ChangeEmailScreen
 import com.example.map.ui.screens.HomeScreen
 import com.example.map.ui.screens.LoginScreen
@@ -28,6 +30,7 @@ private const val HOME_ROUTE = "home"
 private const val SETTINGS_ROUTE = "settings"
 private const val CHANGE_EMAIL_ROUTE = "change_email"
 private const val PROFILE_PRIVACY_ROUTE = "profile_privacy"
+private const val REGISTER_ROUTE = "register"
 
 @Composable
 fun AppNavigation(
@@ -37,8 +40,10 @@ fun AppNavigation(
     changeEmailViewModelFactory: @Composable () -> ChangeEmailViewModel = { hiltViewModel() },
     profileViewModelFactory: @Composable () -> ProfilePrivacySettingsViewModel = {
         hiltViewModel()
-    }
-) {
+    },
+    registerViewModelFactory: @Composable () -> RegisterViewModel = { hiltViewModel() },
+
+    ) {
     val uiState by viewModel.uiState.collectAsState()
     val navController = rememberNavController()
 
@@ -72,7 +77,24 @@ fun AppNavigation(
                 LoginScreen(
                     state = uiState,
                     onLoginClick = viewModel::login,
-                    onInputsChanged = viewModel::clearErrors
+                    onInputsChanged = viewModel::clearErrors,
+                    onRegisterClick = {
+                        navController.navigate(REGISTER_ROUTE)
+                    }
+                )
+            }
+
+            composable(REGISTER_ROUTE) {
+                val registerViewModel = registerViewModelFactory()
+
+                RegisterScreen(
+                    onRegisterSuccess = { _ ->
+                        navController.popBackStack(LOGIN_ROUTE, inclusive = false)
+                    },
+                    onNavigateBackToLogin = {
+                        navController.popBackStack()
+                    },
+                    viewModel = registerViewModel
                 )
             }
 

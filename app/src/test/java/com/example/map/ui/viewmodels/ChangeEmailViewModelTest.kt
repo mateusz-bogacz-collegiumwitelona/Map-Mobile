@@ -239,11 +239,11 @@ class ChangeEmailViewModelTest {
         val cases = listOf(
             EmailChangeError.EMAIL_INVALID to "Podaj prawidłowy adres e-mail.",
             EmailChangeError.EMAIL_UNCHANGED to
-                "Nowy adres e-mail musi różnić się od obecnego.",
+                    "Nowy adres e-mail musi różnić się od obecnego.",
             EmailChangeError.ATTEMPTS_EXCEEDED to
-                "Przekroczono liczbę prób. Wróć i wyślij nowy kod.",
+                    "Przekroczono liczbę prób. Wróć i wyślij nowy kod.",
             EmailChangeError.RATE_LIMITED to
-                "Zbyt wiele żądań. Odczekaj chwilę i spróbuj ponownie.",
+                    "Zbyt wiele żądań. Odczekaj chwilę i spróbuj ponownie.",
             EmailChangeError.UNAUTHORIZED to "Sesja wygasła. Zaloguj się ponownie."
         )
 

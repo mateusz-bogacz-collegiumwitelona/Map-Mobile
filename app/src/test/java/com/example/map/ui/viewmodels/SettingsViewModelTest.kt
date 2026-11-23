@@ -147,11 +147,11 @@ class SettingsViewModelTest {
         advanceUntilIdle()
         val cases = listOf(
             AccountDeletionError.NOT_FOUND to
-                "Konto nie istnieje lub zostało już usunięte.",
+                    "Konto nie istnieje lub zostało już usunięte.",
             AccountDeletionError.RATE_LIMITED to
-                "Zbyt wiele żądań. Odczekaj chwilę i spróbuj ponownie.",
+                    "Zbyt wiele żądań. Odczekaj chwilę i spróbuj ponownie.",
             AccountDeletionError.UNKNOWN to
-                "Nie udało się usunąć konta. Spróbuj ponownie."
+                    "Nie udało się usunąć konta. Spróbuj ponownie."
         )
 
         cases.forEach { (error, expectedMessage) ->

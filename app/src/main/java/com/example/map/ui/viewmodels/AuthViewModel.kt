@@ -7,14 +7,14 @@ import com.example.map.domain.model.AuthFailure
 import com.example.map.domain.session.AccountSession
 import com.example.map.domain.session.AuthSession
 import dagger.hilt.android.lifecycle.HiltViewModel
-import java.util.concurrent.CancellationException
-import javax.inject.Inject
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.util.concurrent.CancellationException
+import javax.inject.Inject
 
 @HiltViewModel
 class AuthViewModel @Inject constructor(
@@ -188,20 +188,28 @@ class AuthViewModel @Inject constructor(
         when (failure) {
             AuthFailure.INVALID_CREDENTIALS ->
                 "Nieprawidłowy e-mail lub hasło."
+
             AuthFailure.EMAIL_NOT_CONFIRMED ->
                 "Potwierdź adres e-mail przed zalogowaniem."
+
             AuthFailure.ACCOUNT_LOCKED ->
                 "Konto jest tymczasowo zablokowane. Spróbuj ponownie później."
+
             AuthFailure.ACCOUNT_BANNED ->
                 "To konto nie może się zalogować."
+
             AuthFailure.ROLE_NOT_ALLOWED ->
                 "Logowanie jest dostępne wyłącznie dla kont z rolą USER."
+
             AuthFailure.INVALID_SESSION ->
                 "Sesja wygasła. Zaloguj się ponownie."
+
             AuthFailure.NETWORK_ERROR ->
                 "Brak połączenia z serwerem. Sprawdź internet i spróbuj ponownie."
+
             AuthFailure.TOO_MANY_ATTEMPTS ->
                 "Zbyt wiele prób logowania. Spróbuj ponownie później."
+
             AuthFailure.SERVER_ERROR,
             AuthFailure.INVALID_RESPONSE ->
                 "Serwer nie mógł obsłużyć logowania. Spróbuj ponownie."

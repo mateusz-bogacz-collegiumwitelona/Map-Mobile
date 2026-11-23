@@ -57,8 +57,8 @@ data class ProfilePrivacySettingsUiState(
 
     val hasChanges: Boolean
         get() = firstName.trim() != savedFirstName ||
-            lastName.trim() != savedLastName ||
-            isPublic != savedIsPublic
+                lastName.trim() != savedLastName ||
+                isPublic != savedIsPublic
 
     val canSave: Boolean
         get() = !isSaving && isValid && hasChanges
@@ -151,7 +151,7 @@ class ProfilePrivacySettingsViewModel @Inject constructor(
             val firstName = state.firstName.trim()
             val lastName = state.lastName.trim()
             val namesChanged = firstName != state.savedFirstName ||
-                lastName != state.savedLastName
+                    lastName != state.savedLastName
             val visibilityChanged = state.isPublic != state.savedIsPublic
 
             if (namesChanged) {
@@ -214,6 +214,7 @@ class ProfilePrivacySettingsViewModel @Inject constructor(
             ProfileUpdateError.NOT_FOUND -> "Konto nie istnieje lub zostało usunięte."
             ProfileUpdateError.RATE_LIMITED ->
                 "Zbyt wiele żądań. Odczekaj chwilę i spróbuj ponownie."
+
             ProfileUpdateError.NETWORK -> "Brak połączenia z internetem. Spróbuj ponownie."
             ProfileUpdateError.UNKNOWN -> message ?: fallback
         }
@@ -246,7 +247,9 @@ private fun nameErrorMessage(field: String, error: ProfileNameError?): String? =
         ProfileNameError.BLANK -> "$field jest wymagane."
         ProfileNameError.TOO_SHORT ->
             "$field musi mieć co najmniej ${ProfileNameValidator.MIN_LENGTH} znaki."
+
         ProfileNameError.TOO_LONG ->
             "$field może mieć maksymalnie ${ProfileNameValidator.MAX_LENGTH} znaków."
+
         null -> null
     }

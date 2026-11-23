@@ -9,7 +9,6 @@ import com.example.map.testing.FakeAuthRepository
 import com.example.map.testing.FakeProfileStorage
 import com.example.map.testing.FakeTokenStorage
 import com.example.map.testing.FakeUserProfileRepository
-import java.io.IOException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -25,6 +24,7 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
+import java.io.IOException
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class AuthViewModelTest {
@@ -89,7 +89,10 @@ class AuthViewModelTest {
             UserProfile(firstName = "Anna", lastName = "Nowak"),
             viewModel.uiState.value.profile
         )
-        assertEquals(UserProfile(firstName = "Anna", lastName = "Nowak"), accountSession.profile.value)
+        assertEquals(
+            UserProfile(firstName = "Anna", lastName = "Nowak"),
+            accountSession.profile.value
+        )
     }
 
     @Test

@@ -38,22 +38,24 @@ data class ChangeEmailUiState(
             newEmail.isBlank() -> null
             normalizedNewEmail.length > MAX_EMAIL_LENGTH ->
                 "Adres e-mail może mieć maksymalnie $MAX_EMAIL_LENGTH znaków."
+
             !EmailValidator.isValid(newEmail) -> "Podaj prawidłowy adres e-mail."
             normalizedNewEmail.equals(currentEmail.trim(), ignoreCase = true) ->
                 "Nowy adres e-mail musi różnić się od obecnego."
+
             else -> null
         }
 
     val canSubmitEmail: Boolean
         get() = !isSubmitting &&
-            newEmail.isNotBlank() &&
-            EmailValidator.isValid(newEmail) &&
-            !normalizedNewEmail.equals(currentEmail.trim(), ignoreCase = true)
+                newEmail.isNotBlank() &&
+                EmailValidator.isValid(newEmail) &&
+                !normalizedNewEmail.equals(currentEmail.trim(), ignoreCase = true)
 
     val canSubmitCode: Boolean
         get() = !isSubmitting &&
-            code.length == CODE_LENGTH &&
-            code.all { it.isDigit() }
+                code.length == CODE_LENGTH &&
+                code.all { it.isDigit() }
 }
 
 @HiltViewModel
@@ -167,13 +169,17 @@ class ChangeEmailViewModel @Inject constructor(
             EmailChangeError.EMAIL_TAKEN -> "Ten adres e-mail jest już używany."
             EmailChangeError.EMAIL_UNCHANGED ->
                 "Nowy adres e-mail musi różnić się od obecnego."
+
             EmailChangeError.INVALID_CODE -> "Nieprawidłowy kod weryfikacyjny."
             EmailChangeError.CODE_EXPIRED ->
                 "Kod weryfikacyjny wygasł. Wróć i wyślij nowy kod."
+
             EmailChangeError.ATTEMPTS_EXCEEDED ->
                 "Przekroczono liczbę prób. Wróć i wyślij nowy kod."
+
             EmailChangeError.RATE_LIMITED ->
                 "Zbyt wiele żądań. Odczekaj chwilę i spróbuj ponownie."
+
             EmailChangeError.UNAUTHORIZED -> "Sesja wygasła. Zaloguj się ponownie."
             EmailChangeError.NETWORK -> "Brak połączenia z internetem. Spróbuj ponownie."
             EmailChangeError.UNKNOWN ->

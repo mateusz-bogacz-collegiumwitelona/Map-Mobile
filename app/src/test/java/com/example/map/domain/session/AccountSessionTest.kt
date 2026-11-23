@@ -1,9 +1,8 @@
-package com.example.map.domain
+package com.example.map.domain.session
 
 import com.example.map.domain.model.ProfileUpdateError
 import com.example.map.domain.model.ProfileUpdateResult
 import com.example.map.domain.model.UserProfile
-import com.example.map.domain.session.AccountSession
 import com.example.map.testing.FakeAccountRepository
 import com.example.map.testing.FakeProfileStorage
 import com.example.map.testing.FakeUserProfileRepository

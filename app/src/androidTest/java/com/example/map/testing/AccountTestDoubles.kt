@@ -4,6 +4,7 @@ import com.example.map.domain.model.AccountDeletionResult
 import com.example.map.domain.model.AuthTokens
 import com.example.map.domain.model.AuthenticatedAccount
 import com.example.map.domain.model.EmailChangeResult
+import com.example.map.domain.model.RegistrationResult
 import com.example.map.domain.model.UserProfile
 import com.example.map.domain.repository.AccountRepository
 import com.example.map.domain.repository.AuthRepository
@@ -12,7 +13,21 @@ import com.example.map.domain.repository.TokenStorage
 import kotlinx.coroutines.CompletableDeferred
 
 class FakeAuthRepository : AuthRepository {
+    var registerResult: RegistrationResult = RegistrationResult.Success
+    var registerCalls = 0
 
+    override suspend fun register(
+        firstName: String,
+        lastName: String,
+        email: String,
+        password: String,
+        confirmPassword: String,
+        bio: String?,
+        isPublic: Boolean
+    ): RegistrationResult {
+        registerCalls++
+        return registerResult
+    }
     var loginResult: AuthenticatedAccount = AuthenticatedAccount(
         tokens = AuthTokens(
             accessToken = "access-test",

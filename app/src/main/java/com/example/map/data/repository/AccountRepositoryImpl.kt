@@ -37,7 +37,12 @@ class AccountRepositoryImpl @Inject constructor(
                 AccountDeletionResult.Failure(mapDeletionError(status, code), msg)
             },
             onNetworkError = { AccountDeletionResult.Failure(AccountDeletionError.NETWORK) },
-            onUnknownError = { msg -> AccountDeletionResult.Failure(AccountDeletionError.UNKNOWN, msg) }
+            onUnknownError = { msg ->
+                AccountDeletionResult.Failure(
+                    AccountDeletionError.UNKNOWN,
+                    msg
+                )
+            }
         )
 
     private suspend fun executeEmailChange(

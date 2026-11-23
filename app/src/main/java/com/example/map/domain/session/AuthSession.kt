@@ -2,6 +2,7 @@ package com.example.map.domain.session
 
 import com.example.map.domain.model.AuthException
 import com.example.map.domain.model.AuthFailure
+import com.example.map.domain.model.RegistrationResult
 import com.example.map.domain.repository.AuthRepository
 import com.example.map.domain.repository.TokenStorage
 import java.util.concurrent.CancellationException
@@ -65,6 +66,25 @@ class AuthSession(
             tokenStorage.clearTokens()
         }
     }
+
+    suspend fun register(
+        firstName: String,
+        lastName: String,
+        email: String,
+        password: String,
+        confirmPassword: String,
+        bio: String?,
+        isPublic: Boolean
+    ): RegistrationResult =
+        authRepository.register(
+            firstName = firstName.trim(),
+            lastName = lastName.trim(),
+            email = email.trim(),
+            password = password,
+            confirmPassword = confirmPassword,
+            bio = bio?.trim(),
+            isPublic = isPublic
+        )
 
     fun clearLocalSession() {
         tokenStorage.clearTokens()

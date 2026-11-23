@@ -314,12 +314,12 @@ class ProfilePrivacySettingsViewModelTest {
         val cases = listOf(
             ProfileUpdateError.FIRST_NAME_INVALID to "Imię musi mieć od 2 do 50 znaków.",
             ProfileUpdateError.LAST_NAME_INVALID to
-                "Nazwisko musi mieć od 2 do 50 znaków.",
+                    "Nazwisko musi mieć od 2 do 50 znaków.",
             ProfileUpdateError.UNAUTHORIZED to "Sesja wygasła. Zaloguj się ponownie.",
             ProfileUpdateError.NOT_FOUND to
-                "Konto nie istnieje lub zostało usunięte.",
+                    "Konto nie istnieje lub zostało usunięte.",
             ProfileUpdateError.RATE_LIMITED to
-                "Zbyt wiele żądań. Odczekaj chwilę i spróbuj ponownie."
+                    "Zbyt wiele żądań. Odczekaj chwilę i spróbuj ponownie."
         )
 
         cases.forEach { (error, expectedMessage) ->

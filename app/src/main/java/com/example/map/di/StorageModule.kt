@@ -1,7 +1,7 @@
 package com.example.map.di
 
-import com.example.map.data.local.ProfileManager
 import com.example.map.data.TokenManager
+import com.example.map.data.local.ProfileManager
 import com.example.map.domain.repository.ProfileStorage
 import com.example.map.domain.repository.TokenStorage
 import dagger.Binds
