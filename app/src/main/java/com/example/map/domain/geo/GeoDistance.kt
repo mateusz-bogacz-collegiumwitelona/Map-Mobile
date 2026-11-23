@@ -15,7 +15,13 @@ object GeoDistance {
         from: GeoPoint,
         to: GeoPoint,
         radiusKm: Double = EARTH_RADIUS_KM
-    ): Double = centralAngle(from, to) * radiusKm
+    ): Double {
+        require(radiusKm > 0.0) {
+            "Radius must be positive, was $radiusKm."
+        }
+
+        return centralAngle(from, to) * radiusKm
+    }
 
     internal fun centralAngle(from: GeoPoint, to: GeoPoint): Double {
         val fromLatitude = Math.toRadians(from.latitude)

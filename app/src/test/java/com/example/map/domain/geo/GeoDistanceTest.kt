@@ -17,6 +17,11 @@ class GeoDistanceTest {
         assertEquals(2887.2599506071106, distance, 1e-6)
     }
 
+    @Test(expected = IllegalArgumentException::class)
+    fun rejectsNonPositiveRadius() {
+        GeoDistance.haversineKm(nashville, losAngeles, radiusKm = 0.0)
+    }
+
     @Test
     fun usesMeanEarthRadiusByDefault() {
         val distance = GeoDistance.haversineKm(nashville, losAngeles)

@@ -16,7 +16,8 @@ object Antimeridian {
         val parts = mutableListOf<List<GeoPoint>>()
         var current = mutableListOf(points.first())
 
-        for (next in points.drop(1)) {
+        for (index in 1 until points.size) {
+            val next = points[index]
             val previous = current.last()
 
             when {

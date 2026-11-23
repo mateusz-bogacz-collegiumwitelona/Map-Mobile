@@ -135,4 +135,23 @@ class GreatCircleTest {
     fun rejectsNonPositiveSegmentLength() {
         GreatCircle.arc(warsaw, losAngeles, maxSegmentLengthKm = 0.0)
     }
+
+    @Test(expected = IllegalArgumentException::class)
+    fun rejectsSegmentLengthBelowTheMinimum() {
+        GreatCircle.arc(warsaw, losAngeles, maxSegmentLengthKm = 1e-9)
+    }
+
+    @Test
+    fun acceptsTheMinimumSegmentLength() {
+        val arc = GreatCircle.arc(
+            GeoPoint(0.0, 0.0),
+            GeoPoint(0.0, 1.0),
+            maxSegmentLengthKm = GreatCircle.MIN_SEGMENT_LENGTH_KM
+        )
+
+        assertEquals(113, arc.size)
+        arc.zipWithNext().forEach { (from, to) ->
+            assertTrue(GeoDistance.haversineKm(from, to) <= GreatCircle.MIN_SEGMENT_LENGTH_KM + 1e-6)
+        }
+    }
 }

@@ -11,6 +11,7 @@ import kotlin.math.sqrt
 object GreatCircle {
 
     const val MAX_SEGMENT_LENGTH_KM = 100.0
+    const val MIN_SEGMENT_LENGTH_KM = 1.0
 
     private const val ANGLE_EPSILON = 1e-6
 
@@ -19,8 +20,8 @@ object GreatCircle {
         to: GeoPoint,
         maxSegmentLengthKm: Double = MAX_SEGMENT_LENGTH_KM
     ): List<GeoPoint> {
-        require(maxSegmentLengthKm > 0.0) {
-            "Maximum segment length must be positive, was $maxSegmentLengthKm."
+        require(maxSegmentLengthKm >= MIN_SEGMENT_LENGTH_KM) {
+            "Maximum segment length must be at least $MIN_SEGMENT_LENGTH_KM km, was $maxSegmentLengthKm."
         }
 
         val angle = GeoDistance.centralAngle(from, to)
@@ -39,11 +40,15 @@ object GreatCircle {
             .toInt()
             .coerceAtLeast(1)
 
+        val start = UnitVector.of(from)
+        val end = UnitVector.of(to)
+        val sinAngle = sin(angle)
+
         return (0..segments).map { index ->
             when (index) {
                 0 -> from
                 segments -> to
-                else -> interpolate(from, to, angle, index.toDouble() / segments)
+                else -> interpolate(start, end, angle, sinAngle, index.toDouble() / segments)
             }
         }
     }
@@ -52,28 +57,37 @@ object GreatCircle {
         if (longitude > 180.0) longitude - 360.0 else longitude
 
     private fun interpolate(
-        from: GeoPoint,
-        to: GeoPoint,
+        start: UnitVector,
+        end: UnitVector,
         angle: Double,
+        sinAngle: Double,
         fraction: Double
     ): GeoPoint {
-        val fromLatitude = Math.toRadians(from.latitude)
-        val fromLongitude = Math.toRadians(from.longitude)
-        val toLatitude = Math.toRadians(to.latitude)
-        val toLongitude = Math.toRadians(to.longitude)
+        val startWeight = sin((1 - fraction) * angle) / sinAngle
+        val endWeight = sin(fraction * angle) / sinAngle
 
-        val fromWeight = sin((1 - fraction) * angle) / sin(angle)
-        val toWeight = sin(fraction * angle) / sin(angle)
-
-        val x = fromWeight * cos(fromLatitude) * cos(fromLongitude) +
-            toWeight * cos(toLatitude) * cos(toLongitude)
-        val y = fromWeight * cos(fromLatitude) * sin(fromLongitude) +
-            toWeight * cos(toLatitude) * sin(toLongitude)
-        val z = fromWeight * sin(fromLatitude) + toWeight * sin(toLatitude)
+        val x = startWeight * start.x + endWeight * end.x
+        val y = startWeight * start.y + endWeight * end.y
+        val z = startWeight * start.z + endWeight * end.z
 
         return GeoPoint(
             latitude = Math.toDegrees(atan2(z, sqrt(x * x + y * y))),
             longitude = Math.toDegrees(atan2(y, x))
         )
+    }
+
+    private class UnitVector(val x: Double, val y: Double, val z: Double) {
+        companion object {
+            fun of(point: GeoPoint): UnitVector {
+                val latitude = Math.toRadians(point.latitude)
+                val longitude = Math.toRadians(point.longitude)
+
+                return UnitVector(
+                    x = cos(latitude) * cos(longitude),
+                    y = cos(latitude) * sin(longitude),
+                    z = sin(latitude)
+                )
+            }
+        }
     }
 }
