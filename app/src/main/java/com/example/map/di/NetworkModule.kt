@@ -3,6 +3,7 @@ package com.example.map.di
 import com.example.map.BuildConfig
 import com.example.map.data.remote.AuthInterceptor
 import com.example.map.data.remote.service.AuthApi
+import com.example.map.data.remote.service.TripApiService
 import com.example.map.data.remote.service.UserApiService
 import dagger.Module
 import dagger.Provides
@@ -78,4 +79,9 @@ object NetworkModule {
     @Singleton
     fun provideUserApiService(retrofit: Retrofit): UserApiService =
         retrofit.create(UserApiService::class.java)
+
+    @Provides
+    @Singleton
+    fun provideTripApiService(retrofit: Retrofit): TripApiService =
+        retrofit.create(TripApiService::class.java)
 }

@@ -12,6 +12,11 @@ MAP-Mobile to aplikacja na Androida do zapisywania podróży i odwiedzonych miej
 MAP_API_BASE_URL_DEVELOPMENT=http://10.0.2.2:8080/
 MAP_API_BASE_URL_PRODUCTION=https://api.example.invalid/
 ```
+   Opcjonalnie można ustawić własny serwer OSRM do wyznaczania tras samochodowych (domyślnie
+   `https://router.project-osrm.org/`):
+```powershell
+ROUTING_BASE_URL=https://router.project-osrm.org/
+```
 5. Wybierz konfigurację `app` i kliknij **Run**.
 
 ## Aby zbudować wariant development i production:
