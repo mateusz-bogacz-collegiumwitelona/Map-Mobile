@@ -1,6 +1,7 @@
 package com.example.map.ui.viewmodels
 
 import com.example.map.domain.model.AuthTokens
+import com.example.map.domain.model.AuthenticatedAccount
 import com.example.map.domain.model.UserProfile
 import com.example.map.domain.session.AccountSession
 import com.example.map.domain.session.AuthSession
@@ -45,7 +46,15 @@ class AuthViewModelTest {
     fun loginPersistsEmailAfterSuccessfulAuthentication() = runTest(dispatcher) {
         val tokenStorage = FakeTokenStorage()
         val profileStorage = FakeProfileStorage()
-        val authRepository = FakeAuthRepository()
+        val authRepository = FakeAuthRepository().apply {
+            loginAccount = AuthenticatedAccount(
+                tokens = AuthTokens(
+                    accessToken = "access-test",
+                    refreshToken = "refresh-test"
+                ),
+                roles = listOf("USER")
+            )
+        }
         val accountSession = AccountSession(
             accountRepository = FakeAccountRepository(),
             profileRepository = FakeUserProfileRepository(),

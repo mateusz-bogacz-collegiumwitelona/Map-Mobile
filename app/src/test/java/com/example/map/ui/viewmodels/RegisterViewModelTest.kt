@@ -2,6 +2,7 @@ package com.example.map.ui.auth
 
 import com.example.map.domain.model.AuthenticatedAccount
 import com.example.map.domain.model.AuthTokens
+import com.example.map.domain.model.EmailVerificationResult
 import com.example.map.domain.model.RegistrationError
 import com.example.map.domain.model.RegistrationResult
 import com.example.map.domain.repository.AuthRepository
@@ -154,5 +155,14 @@ class RegisterViewModelTest {
             lastBio = bio
             return nextResult
         }
+
+        override suspend fun confirmEmail(
+            email: String,
+            code: String
+        ): EmailVerificationResult = EmailVerificationResult.Success
+
+        override suspend fun resendVerificationCode(
+            email: String
+        ): EmailVerificationResult = EmailVerificationResult.Success
     }
 }

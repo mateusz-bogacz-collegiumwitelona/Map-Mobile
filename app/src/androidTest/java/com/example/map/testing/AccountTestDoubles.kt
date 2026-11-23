@@ -4,6 +4,7 @@ import com.example.map.domain.model.AccountDeletionResult
 import com.example.map.domain.model.AuthTokens
 import com.example.map.domain.model.AuthenticatedAccount
 import com.example.map.domain.model.EmailChangeResult
+import com.example.map.domain.model.EmailVerificationResult
 import com.example.map.domain.model.RegistrationResult
 import com.example.map.domain.model.UserProfile
 import com.example.map.domain.repository.AccountRepository
@@ -14,20 +15,16 @@ import kotlinx.coroutines.CompletableDeferred
 
 class FakeAuthRepository : AuthRepository {
     var registerResult: RegistrationResult = RegistrationResult.Success
+    var registerGate: CompletableDeferred<Unit>? = null
     var registerCalls = 0
+    var lastRegisteredFirstName: String? = null
+    var lastRegisteredLastName: String? = null
+    var lastRegisteredEmail: String? = null
+    var lastRegisteredPassword: String? = null
+    var lastRegisteredConfirmPassword: String? = null
+    var lastRegisteredBio: String? = null
+    var lastRegisteredIsPublic: Boolean? = null
 
-    override suspend fun register(
-        firstName: String,
-        lastName: String,
-        email: String,
-        password: String,
-        confirmPassword: String,
-        bio: String?,
-        isPublic: Boolean
-    ): RegistrationResult {
-        registerCalls++
-        return registerResult
-    }
     var loginResult: AuthenticatedAccount = AuthenticatedAccount(
         tokens = AuthTokens(
             accessToken = "access-test",
@@ -54,6 +51,27 @@ class FakeAuthRepository : AuthRepository {
     var lastLoggedOutAccessToken: String? = null
     var lastLoggedOutRefreshToken: String? = null
 
+    override suspend fun register(
+        firstName: String,
+        lastName: String,
+        email: String,
+        password: String,
+        confirmPassword: String,
+        bio: String?,
+        isPublic: Boolean
+    ): RegistrationResult {
+        registerCalls++
+        lastRegisteredFirstName = firstName
+        lastRegisteredLastName = lastName
+        lastRegisteredEmail = email
+        lastRegisteredPassword = password
+        lastRegisteredConfirmPassword = confirmPassword
+        lastRegisteredBio = bio
+        lastRegisteredIsPublic = isPublic
+        registerGate?.await()
+        return registerResult
+    }
+
     override suspend fun login(
         email: String,
         password: String
@@ -76,6 +94,15 @@ class FakeAuthRepository : AuthRepository {
         lastLoggedOutRefreshToken = refreshToken
         logoutError?.let { throw it }
     }
+
+    override suspend fun confirmEmail(
+        email: String,
+        code: String
+    ): EmailVerificationResult = EmailVerificationResult.Success
+
+    override suspend fun resendVerificationCode(
+        email: String
+    ): EmailVerificationResult = EmailVerificationResult.Success
 }
 
 class FakeAccountRepository : AccountRepository {

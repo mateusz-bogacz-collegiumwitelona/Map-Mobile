@@ -1,9 +1,12 @@
 package com.example.map.testing
 
 import com.example.map.domain.model.AccountDeletionResult
+import com.example.map.domain.model.AuthException
+import com.example.map.domain.model.AuthFailure
 import com.example.map.domain.model.AuthTokens
 import com.example.map.domain.model.AuthenticatedAccount
 import com.example.map.domain.model.EmailChangeResult
+import com.example.map.domain.model.EmailVerificationResult
 import com.example.map.domain.model.RegistrationResult
 import com.example.map.domain.model.UserProfile
 import com.example.map.domain.repository.AccountRepository
@@ -25,21 +28,42 @@ class FakeAuthRepository : AuthRepository {
     var lastRegisteredBio: String? = null
     var lastRegisteredIsPublic: Boolean? = null
 
-    var loginResult: AuthenticatedAccount = AuthenticatedAccount(
-        tokens = AuthTokens(
-            accessToken = "access-test",
-            refreshToken = "refresh-test"
-        ),
-        roles = listOf("User")
+    var confirmEmailResult: EmailVerificationResult = EmailVerificationResult.Success
+    var confirmEmailGate: CompletableDeferred<Unit>? = null
+    var confirmEmailCalls = 0
+    var lastConfirmedEmail: String? = null
+    var lastConfirmedCode: String? = null
+
+    var resendVerificationResult: EmailVerificationResult = EmailVerificationResult.Success
+    var resendVerificationGate: CompletableDeferred<Unit>? = null
+    var resendVerificationCalls = 0
+    var lastResendVerificationEmail: String? = null
+
+    var failFirstLogoutWithInvalidSession = false
+    var lastLogoutTokens: Pair<String, String>? = null
+
+    var loginAccount = AuthenticatedAccount(
+        tokens = AuthTokens("access-token", "refresh-token"),
+        roles = listOf("USER")
     )
+    var refreshedAccount = AuthenticatedAccount(
+        tokens = AuthTokens("refreshed-access", "refreshed-refresh"),
+        roles = listOf("USER")
+    )
+
+    var loginResult: AuthenticatedAccount
+        get() = loginAccount
+        set(value) {
+            loginAccount = value
+        }
+
+    var refreshResult: AuthenticatedAccount
+        get() = refreshedAccount
+        set(value) {
+            refreshedAccount = value
+        }
     var loginError: Exception? = null
-    var refreshResult: AuthenticatedAccount = AuthenticatedAccount(
-        tokens = AuthTokens(
-            accessToken = "access-refreshed",
-            refreshToken = "refresh-refreshed"
-        ),
-        roles = listOf("User")
-    )
+
     var refreshError: Exception? = null
     var logoutError: Exception? = null
 
@@ -58,7 +82,7 @@ class FakeAuthRepository : AuthRepository {
         loginCalls++
         lastLoginEmail = email
         loginError?.let { throw it }
-        return loginResult
+        return loginAccount
     }
 
     override suspend fun refresh(refreshToken: String): AuthenticatedAccount {
@@ -69,8 +93,10 @@ class FakeAuthRepository : AuthRepository {
 
     override suspend fun logout(accessToken: String, refreshToken: String) {
         logoutCalls++
-        lastLoggedOutAccessToken = accessToken
-        lastLoggedOutRefreshToken = refreshToken
+        lastLogoutTokens = accessToken to refreshToken
+        if (failFirstLogoutWithInvalidSession && logoutCalls == 1) {
+            throw AuthException(AuthFailure.INVALID_SESSION)
+        }
         logoutError?.let { throw it }
     }
 
@@ -93,6 +119,26 @@ class FakeAuthRepository : AuthRepository {
         lastRegisteredIsPublic = isPublic
         registerGate?.await()
         return registerResult
+    }
+
+    override suspend fun confirmEmail(
+        email: String,
+        code: String
+    ): EmailVerificationResult {
+        confirmEmailCalls++
+        lastConfirmedEmail = email
+        lastConfirmedCode = code
+        confirmEmailGate?.await()
+        return confirmEmailResult
+    }
+
+    override suspend fun resendVerificationCode(
+        email: String
+    ): EmailVerificationResult {
+        resendVerificationCalls++
+        lastResendVerificationEmail = email
+        resendVerificationGate?.await()
+        return resendVerificationResult
     }
 }
 
@@ -166,17 +212,20 @@ class FakeProfileStorage(
 }
 
 class FakeTokenStorage(initialTokens: AuthTokens? = null) : TokenStorage {
-    private var tokens: AuthTokens? = initialTokens
+    private var access: String? = initialTokens?.accessToken
+    private var refresh: String? = initialTokens?.refreshToken
 
     override fun saveTokens(tokens: AuthTokens) {
-        this.tokens = tokens
+        access = tokens.accessToken
+        refresh = tokens.refreshToken
     }
 
-    override fun getAccessToken(): String? = tokens?.accessToken
+    override fun getAccessToken(): String? = access
 
-    override fun getRefreshToken(): String? = tokens?.refreshToken
+    override fun getRefreshToken(): String? = refresh
 
     override fun clearTokens() {
-        tokens = null
+        access = null
+        refresh = null
     }
 }

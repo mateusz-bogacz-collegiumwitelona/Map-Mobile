@@ -13,6 +13,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.map.domain.model.UserProfile
+import com.example.map.ui.auth.ConfirmEmailScreen
 import com.example.map.ui.auth.RegisterScreen
 import com.example.map.ui.auth.RegisterViewModel
 import com.example.map.ui.screens.ChangeEmailScreen
@@ -22,8 +23,10 @@ import com.example.map.ui.screens.ProfilePrivacySettingsScreen
 import com.example.map.ui.screens.SettingsScreen
 import com.example.map.ui.viewmodels.AuthViewModel
 import com.example.map.ui.viewmodels.ChangeEmailViewModel
+import com.example.map.ui.viewmodels.ConfirmEmailViewModel
 import com.example.map.ui.viewmodels.ProfilePrivacySettingsViewModel
 import com.example.map.ui.viewmodels.SettingsViewModel
+import kotlinx.coroutines.delay
 
 private const val LOGIN_ROUTE = "login"
 private const val HOME_ROUTE = "home"
@@ -31,6 +34,7 @@ private const val SETTINGS_ROUTE = "settings"
 private const val CHANGE_EMAIL_ROUTE = "change_email"
 private const val PROFILE_PRIVACY_ROUTE = "profile_privacy"
 private const val REGISTER_ROUTE = "register"
+private const val CONFIRM_EMAIL_ROUTE = "confirm_email"
 
 @Composable
 fun AppNavigation(
@@ -42,7 +46,7 @@ fun AppNavigation(
         hiltViewModel()
     },
     registerViewModelFactory: @Composable () -> RegisterViewModel = { hiltViewModel() },
-
+    confirmEmailViewModelFactory: @Composable () -> ConfirmEmailViewModel = { hiltViewModel() }
     ) {
     val uiState by viewModel.uiState.collectAsState()
     val navController = rememberNavController()
@@ -89,12 +93,40 @@ fun AppNavigation(
 
                 RegisterScreen(
                     onRegisterSuccess = { _ ->
-                        navController.popBackStack(LOGIN_ROUTE, inclusive = false)
+                        navController.navigate(CONFIRM_EMAIL_ROUTE) {
+                            popUpTo(LOGIN_ROUTE) {
+                                inclusive = false
+                            }
+                            launchSingleTop = true
+                        }
                     },
                     onNavigateBackToLogin = {
                         navController.popBackStack()
                     },
                     viewModel = registerViewModel
+                )
+            }
+
+            composable(CONFIRM_EMAIL_ROUTE) {
+                val confirmEmailViewModel = confirmEmailViewModelFactory()
+                val confirmEmailState by confirmEmailViewModel.uiState.collectAsState()
+
+                LaunchedEffect(confirmEmailState.isVerified) {
+                    if (confirmEmailState.isVerified) {
+                        delay(3_000L)
+                        navController.popBackStack(LOGIN_ROUTE, inclusive = false)
+                    }
+                }
+
+                ConfirmEmailScreen(
+                    uiState = confirmEmailState,
+                    onCodeChange = confirmEmailViewModel::onCodeChange,
+                    onConfirmClick = confirmEmailViewModel::confirmEmail,
+                    onResendClick = confirmEmailViewModel::resendCode,
+                    onBackClick = {
+                        confirmEmailViewModel.leaveScreen()
+                        navController.popBackStack(LOGIN_ROUTE, inclusive = false)
+                    }
                 )
             }
 

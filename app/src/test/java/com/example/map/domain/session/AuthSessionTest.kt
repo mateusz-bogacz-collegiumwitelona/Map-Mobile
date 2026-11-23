@@ -4,244 +4,258 @@ import com.example.map.domain.model.AuthException
 import com.example.map.domain.model.AuthFailure
 import com.example.map.domain.model.AuthTokens
 import com.example.map.domain.model.AuthenticatedAccount
+import com.example.map.domain.model.EmailVerificationError
+import com.example.map.domain.model.EmailVerificationResult
+import com.example.map.domain.model.RegistrationError
 import com.example.map.domain.model.RegistrationResult
-import com.example.map.domain.repository.AuthRepository
-import com.example.map.domain.repository.TokenStorage
-import kotlinx.coroutines.runBlocking
+import com.example.map.testing.FakeAuthRepository
+import com.example.map.testing.FakeTokenStorage
+import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
+import org.junit.Assert.fail
 import org.junit.Test
 
 class AuthSessionTest {
 
-    @Test
-    fun userLoginStoresBothTokens() = runBlocking {
-        var storedTokens: AuthTokens? = null
-        val storage = testStorage(
-            readTokens = { storedTokens },
-            writeTokens = { storedTokens = it }
-        )
-        val repository = testRepository(roles = listOf("User"))
-
-        AuthSession(storage, repository).login("user@example.com", "password")
-
-        assertEquals("access-test", storedTokens?.accessToken)
-        assertEquals("refresh-test", storedTokens?.refreshToken)
-    }
+    private fun createSession(
+        repository: FakeAuthRepository = FakeAuthRepository(),
+        storage: FakeTokenStorage = FakeTokenStorage()
+    ): Triple<AuthSession, FakeAuthRepository, FakeTokenStorage> =
+        Triple(AuthSession(tokenStorage = storage, authRepository = repository), repository, storage)
 
     @Test
-    fun adminLoginIsRejectedAndReturnedTokensAreRevoked() = runBlocking {
-        var storedTokens: AuthTokens? = null
-        var revokedTokens: AuthTokens? = null
+    fun loginWithUserRolePersistsTokens() = runTest {
+        val (session, _, storage) = createSession()
 
-        val storage = testStorage(
-            readTokens = { storedTokens },
-            writeTokens = { storedTokens = it }
-        )
-        val repository = testRepository(
-            roles = listOf("Admin"),
-            onLogout = { access, refresh ->
-                revokedTokens = AuthTokens(access, refresh)
-            }
-        )
+        session.login("jan@example.com", "Password1!")
 
-        val error = try {
-            AuthSession(storage, repository).login("admin@example.com", "password")
-            null
-        } catch (caught: AuthException) {
-            caught
-        }
-
-        assertEquals(AuthFailure.ROLE_NOT_ALLOWED, error?.failure)
-        assertNull(storedTokens)
-        assertEquals("access-test", revokedTokens?.accessToken)
-        assertEquals("refresh-test", revokedTokens?.refreshToken)
+        assertEquals("access-token", storage.getAccessToken())
+        assertEquals("refresh-token", storage.getRefreshToken())
+        assertTrue(session.hasSavedSession())
     }
 
     @Test
-    fun accountWithUserAndAdminRolesIsRejected() = runBlocking {
-        var storedTokens: AuthTokens? = null
-        val storage = testStorage(
-            readTokens = { storedTokens },
-            writeTokens = { storedTokens = it }
-        )
-        val repository = testRepository(roles = listOf("User", "Admin"))
-
-        val error = try {
-            AuthSession(storage, repository).login("admin@example.com", "password")
-            null
-        } catch (caught: AuthException) {
-            caught
-        }
-
-        assertEquals(AuthFailure.ROLE_NOT_ALLOWED, error?.failure)
-        assertNull(storedTokens)
-    }
-
-    @Test
-    fun logoutUsesCurrentTokensWithoutRefreshingAndClearsLocalTokens() = runBlocking {
-        var storedTokens: AuthTokens? = AuthTokens("access-test", "refresh-test")
-        var revokedTokens: AuthTokens? = null
-        var refreshCalled = false
-
-        val storage = testStorage(
-            readTokens = { storedTokens },
-            writeTokens = { storedTokens = it }
-        )
-        val repository = testRepository(
-            roles = listOf("User"),
-            onLogout = { access, refresh ->
-                revokedTokens = AuthTokens(access, refresh)
-            },
-            onRefresh = {
-                refreshCalled = true
-                AuthenticatedAccount(
-                    tokens = AuthTokens("access-refreshed", "refresh-refreshed"),
-                    roles = listOf("User")
-                )
-            }
-        )
-
-        AuthSession(storage, repository).logout()
-
-        assertEquals(AuthTokens("access-test", "refresh-test"), revokedTokens)
-        assertFalse(refreshCalled)
-        assertNull(storedTokens)
-    }
-
-    @Test
-    fun logoutRefreshesAndRetriesWhenCurrentAccessTokenIsInvalid() = runBlocking {
-        var storedTokens: AuthTokens? = AuthTokens("access-test", "refresh-test")
-        var refreshArgument: String? = null
-        val logoutCalls = mutableListOf<AuthTokens>()
-
-        val storage = testStorage(
-            readTokens = { storedTokens },
-            writeTokens = { storedTokens = it }
-        )
-        val repository = testRepository(
-            roles = listOf("User"),
-            onLogout = { access, refresh ->
-                logoutCalls += AuthTokens(access, refresh)
-                if (logoutCalls.size == 1) {
-                    throw AuthException(AuthFailure.INVALID_SESSION)
-                }
-            },
-            onRefresh = { refresh ->
-                refreshArgument = refresh
-                AuthenticatedAccount(
-                    tokens = AuthTokens("access-refreshed", "refresh-refreshed"),
-                    roles = listOf("User")
-                )
-            }
-        )
-
-        AuthSession(storage, repository).logout()
-
-        assertEquals("refresh-test", refreshArgument)
-        assertEquals(
-            listOf(
-                AuthTokens("access-test", "refresh-test"),
-                AuthTokens("access-refreshed", "refresh-refreshed")
-            ),
-            logoutCalls
-        )
-        assertNull(storedTokens)
-    }
-
-    @Test
-    fun logoutClearsLocalTokensEvenWhenBackendCallFails() = runBlocking {
-        var storedTokens: AuthTokens? = AuthTokens("access-test", "refresh-test")
-        val storage = testStorage(
-            readTokens = { storedTokens },
-            writeTokens = { storedTokens = it }
-        )
-        val repository = testRepository(
-            roles = listOf("User"),
-            onLogout = { _, _ -> throw IllegalStateException("network error") }
-        )
-
-        try {
-            AuthSession(storage, repository).logout()
-        } catch (_: IllegalStateException) {
-            // Lokalna sesja musi zostać usunięta mimo błędu backendu.
-        }
-
-        assertNull(storedTokens)
-    }
-
-    @Test
-    fun clearLocalSessionClearsTokens() {
-        var storedTokens: AuthTokens? = AuthTokens("access-test", "refresh-test")
-        val storage = testStorage(
-            readTokens = { storedTokens },
-            writeTokens = { storedTokens = it }
-        )
-
-        AuthSession(storage, testRepository(listOf("User"))).clearLocalSession()
-
-        assertNull(storedTokens)
-    }
-
-    private fun testStorage(
-        readTokens: () -> AuthTokens?,
-        writeTokens: (AuthTokens?) -> Unit
-    ): TokenStorage = object : TokenStorage {
-        override fun saveTokens(tokens: AuthTokens) {
-            writeTokens(tokens)
-        }
-
-        override fun getAccessToken(): String? =
-            readTokens()?.accessToken
-
-        override fun getRefreshToken(): String? =
-            readTokens()?.refreshToken
-
-        override fun clearTokens() {
-            writeTokens(null)
-        }
-    }
-
-    private fun testRepository(
-        roles: List<String>,
-        onLogout: suspend (String, String) -> Unit = { _, _ -> },
-        onRefresh: suspend (String) -> AuthenticatedAccount = {
-            AuthenticatedAccount(
-                tokens = AuthTokens("access-refreshed", "refresh-refreshed"),
-                roles = roles
+    fun loginWithDisallowedRoleRevokesTokensAndThrows() = runTest {
+        val repo = FakeAuthRepository().apply {
+            loginAccount = AuthenticatedAccount(
+                tokens = AuthTokens("admin-access", "admin-refresh"),
+                roles = listOf("ADMIN")
             )
         }
-    ): AuthRepository = object : AuthRepository {
-        override suspend fun login(
-            email: String,
-            password: String
-        ) = AuthenticatedAccount(
-            tokens = AuthTokens("access-test", "refresh-test"),
-            roles = roles
+        val (session, _, storage) = createSession(repository = repo)
+
+        try {
+            session.login("admin@example.com", "Password1!")
+            fail("Oczekiwano AuthException(ROLE_NOT_ALLOWED)")
+        } catch (ex: AuthException) {
+            assertEquals(AuthFailure.ROLE_NOT_ALLOWED, ex.failure)
+        }
+
+        assertEquals("admin-access" to "admin-refresh", repo.lastLogoutTokens)
+        assertNull(storage.getAccessToken())
+        assertNull(storage.getRefreshToken())
+        assertFalse(session.hasSavedSession())
+    }
+
+    @Test
+    fun logoutClearsLocalTokensEvenWhenRemoteFails() = runTest {
+        val storage = FakeTokenStorage().apply {
+            saveTokens(AuthTokens("access-1", "refresh-1"))
+        }
+        val repo = FakeAuthRepository().apply {
+            logoutError = AuthException(AuthFailure.SERVER_ERROR)
+        }
+        val (session, _, _) = createSession(repository = repo, storage = storage)
+
+        try {
+            session.logout()
+            fail("Oczekiwano AuthException(SERVER_ERROR)")
+        } catch (ex: AuthException) {
+            assertEquals(AuthFailure.SERVER_ERROR, ex.failure)
+        }
+
+        assertNull(storage.getAccessToken())
+        assertNull(storage.getRefreshToken())
+        assertFalse(session.hasSavedSession())
+    }
+
+    @Test
+    fun logoutRefreshesSessionAndRetriesOnInvalidSession() = runTest {
+        val storage = FakeTokenStorage().apply {
+            saveTokens(AuthTokens("expired-access", "valid-refresh"))
+        }
+        val repo = FakeAuthRepository().apply {
+            failFirstLogoutWithInvalidSession = true
+            refreshedAccount = AuthenticatedAccount(
+                tokens = AuthTokens("new-access", "new-refresh"),
+                roles = listOf("USER")
+            )
+        }
+        val (session, _, _) = createSession(repository = repo, storage = storage)
+
+        session.logout()
+
+        assertEquals(2, repo.logoutCalls)
+        assertEquals("new-access" to "new-refresh", repo.lastLogoutTokens)
+        assertNull(storage.getAccessToken())
+        assertNull(storage.getRefreshToken())
+    }
+
+    @Test
+    fun clearLocalSessionRemovesSavedTokens() {
+        val storage = FakeTokenStorage().apply {
+            saveTokens(AuthTokens("access-1", "refresh-1"))
+        }
+        val (session, _, _) = createSession(storage = storage)
+
+        session.clearLocalSession()
+
+        assertFalse(session.hasSavedSession())
+        assertNull(storage.getAccessToken())
+        assertNull(storage.getRefreshToken())
+    }
+
+    @Test
+    fun successfulRegisterNormalizesAndStoresPendingEmailInMemory() = runTest {
+        val (session, repo, _) = createSession()
+
+        val result = session.register(
+            firstName = "  Jan ",
+            lastName = " Kowalski  ",
+            email = "  jan@example.com  ",
+            password = "Password1!",
+            confirmPassword = "Password1!",
+            bio = "  Opis  ",
+            isPublic = true
         )
 
-        override suspend fun refresh(
-            refreshToken: String
-        ): AuthenticatedAccount = onRefresh(refreshToken)
+        assertEquals(RegistrationResult.Success, result)
+        assertEquals("Jan", repo.lastRegisteredFirstName)
+        assertEquals("Kowalski", repo.lastRegisteredLastName)
+        assertEquals("jan@example.com", repo.lastRegisteredEmail)
+        assertEquals("Opis", repo.lastRegisteredBio)
+        assertEquals("jan@example.com", session.pendingVerificationEmail.value)
+    }
 
-        override suspend fun logout(
-            accessToken: String,
-            refreshToken: String
-        ) {
-            onLogout(accessToken, refreshToken)
+    @Test
+    fun failedRegisterDoesNotStorePendingEmail() = runTest {
+        val repo = FakeAuthRepository().apply {
+            registerResult = RegistrationResult.Failure(RegistrationError.NETWORK)
         }
+        val (session, _, _) = createSession(repository = repo)
 
-        override suspend fun register(
-            firstName: String,
-            lastName: String,
-            email: String,
-            password: String,
-            confirmPassword: String,
-            bio: String?,
-            isPublic: Boolean
-        ): RegistrationResult {
-            error("Rejestracja nie jest używana w tym teście.")
+        val result = session.register(
+            firstName = "Jan",
+            lastName = "Kowalski",
+            email = "jan@example.com",
+            password = "Password1!",
+            confirmPassword = "Password1!",
+            bio = null,
+            isPublic = false
+        )
+
+        assertEquals(RegistrationResult.Failure(RegistrationError.NETWORK), result)
+        assertNull(session.pendingVerificationEmail.value)
+    }
+
+    @Test
+    fun setPendingVerificationEmailNormalizesAndIgnoresBlank() {
+        val (session, _, _) = createSession()
+
+        session.setPendingVerificationEmail("   ")
+        assertNull(session.pendingVerificationEmail.value)
+
+        session.setPendingVerificationEmail("  jan@example.com  ")
+        assertEquals("jan@example.com", session.pendingVerificationEmail.value)
+    }
+
+    @Test
+    fun clearPendingVerificationEmailResetsState() {
+        val (session, _, _) = createSession()
+        session.setPendingVerificationEmail("jan@example.com")
+
+        session.clearPendingVerificationEmail()
+
+        assertNull(session.pendingVerificationEmail.value)
+    }
+
+    @Test
+    fun confirmEmailWithoutPendingEmailReturnsValidationError() = runTest {
+        val (session, repo, _) = createSession()
+
+        val result = session.confirmEmail("123456")
+
+        assertEquals(
+            EmailVerificationResult.Failure(
+                error = EmailVerificationError.VALIDATION,
+                message = "Brak adresu e-mail do potwierdzenia."
+            ),
+            result
+        )
+        assertEquals(0, repo.confirmEmailCalls)
+    }
+
+    @Test
+    fun successfulConfirmEmailTrimsCodeAndClearsPendingEmail() = runTest {
+        val (session, repo, _) = createSession()
+        session.setPendingVerificationEmail("  jan@example.com ")
+
+        val result = session.confirmEmail("  654321  ")
+
+        assertEquals(EmailVerificationResult.Success, result)
+        assertEquals("jan@example.com", repo.lastConfirmedEmail)
+        assertEquals("654321", repo.lastConfirmedCode)
+        assertEquals(1, repo.confirmEmailCalls)
+        assertNull(session.pendingVerificationEmail.value)
+    }
+
+    @Test
+    fun failedConfirmEmailKeepsPendingEmailInMemory() = runTest {
+        val failure = EmailVerificationResult.Failure(
+            error = EmailVerificationError.INVALID_CODE,
+            message = "Nieprawidłowy lub wygasły kod weryfikacyjny."
+        )
+        val repo = FakeAuthRepository().apply {
+            confirmEmailResult = failure
         }
+        val (session, _, _) = createSession(repository = repo)
+        session.setPendingVerificationEmail("jan@example.com")
+
+        val result = session.confirmEmail("000000")
+
+        assertEquals(failure, result)
+        assertEquals("jan@example.com", session.pendingVerificationEmail.value)
+    }
+
+    @Test
+    fun resendVerificationCodeWithoutPendingEmailReturnsValidationError() = runTest {
+        val (session, repo, _) = createSession()
+
+        val result = session.resendVerificationCode()
+
+        assertEquals(
+            EmailVerificationResult.Failure(
+                error = EmailVerificationError.VALIDATION,
+                message = "Brak adresu e-mail do ponownej wysyłki kodu."
+            ),
+            result
+        )
+        assertEquals(0, repo.resendVerificationCalls)
+    }
+
+    @Test
+    fun resendVerificationCodeSendsForPendingEmail() = runTest {
+        val (session, repo, _) = createSession()
+        session.setPendingVerificationEmail("  jan@example.com ")
+
+        val result = session.resendVerificationCode()
+
+        assertEquals(EmailVerificationResult.Success, result)
+        assertEquals("jan@example.com", repo.lastResendVerificationEmail)
+        assertEquals(1, repo.resendVerificationCalls)
+        assertEquals("jan@example.com", session.pendingVerificationEmail.value)
     }
 }

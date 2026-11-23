@@ -1,6 +1,7 @@
 package com.example.map.domain.repository
 
 import com.example.map.domain.model.AuthenticatedAccount
+import com.example.map.domain.model.EmailVerificationResult
 import com.example.map.domain.model.RegistrationResult
 
 interface AuthRepository {
@@ -19,5 +20,8 @@ interface AuthRepository {
         bio: String?,
         isPublic: Boolean
     ): RegistrationResult
+
+    suspend fun confirmEmail(email: String, code: String) : EmailVerificationResult
+    suspend fun resendVerificationCode(email: String) : EmailVerificationResult
 }
 

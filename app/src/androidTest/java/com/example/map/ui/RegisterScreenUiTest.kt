@@ -1,4 +1,4 @@
-package com.example.map.ui.auth
+package com.example.map.ui
 
 import androidx.compose.ui.semantics.ProgressBarRangeInfo
 import androidx.compose.ui.test.assertIsDisplayed
@@ -14,18 +14,17 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTextInput
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import com.example.map.domain.model.AuthTokens
-import com.example.map.domain.model.AuthenticatedAccount
 import com.example.map.domain.model.RegistrationError
 import com.example.map.domain.model.RegistrationResult
-import com.example.map.domain.repository.AuthRepository
-import com.example.map.domain.repository.TokenStorage
 import com.example.map.domain.session.AuthSession
+import com.example.map.testing.FakeAuthRepository
+import com.example.map.testing.FakeTokenStorage
+import com.example.map.ui.auth.RegisterScreen
+import com.example.map.ui.auth.RegisterViewModel
 import kotlinx.coroutines.CompletableDeferred
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
-import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -139,35 +138,50 @@ class RegisterScreenUiTest {
         repository.registerGate = gate
         fillValidForm()
 
-        composeRule
-            .onNodeWithTag("register_submit")
-            .performScrollTo()
-            .performClick()
+        try {
+            composeRule
+                .onNodeWithTag("register_submit")
+                .performScrollTo()
+                .performClick()
 
-        composeRule.waitUntil(timeoutMillis = 5_000) {
-            viewModel.uiState.value.isLoading
+            composeRule.waitForIdle()
+
+            try {
+                composeRule.waitUntil(timeoutMillis = 5_000) {
+                    repository.registerCalls == 1 && viewModel.uiState.value.isLoading
+                }
+            } catch (ex: androidx.compose.ui.test.ComposeTimeoutException) {
+                throw AssertionError(
+                    "Timeout czekania na start rejestracji. registerCalls=${repository.registerCalls}, uiState=${viewModel.uiState.value}",
+                    ex
+                )
+            }
+
+            composeRule.onNodeWithTag("register_first_name").assertIsNotEnabled()
+            composeRule.onNodeWithTag("register_last_name").assertIsNotEnabled()
+            composeRule.onNodeWithTag("register_email").assertIsNotEnabled()
+            composeRule.onNodeWithTag("register_password").assertIsNotEnabled()
+            composeRule.onNodeWithTag("register_confirm_password").assertIsNotEnabled()
+            composeRule.onNodeWithTag("register_bio").assertIsNotEnabled()
+            composeRule.onNodeWithTag("register_visibility_toggle").assertIsNotEnabled()
+            composeRule.onNodeWithTag("register_submit").assertIsNotEnabled()
+            composeRule.onNode(
+                hasProgressBarRangeInfo(ProgressBarRangeInfo.Indeterminate)
+            ).assertIsDisplayed()
+
+            composeRule.runOnIdle {
+                gate.complete(Unit)
+            }
+
+            composeRule.waitUntil(timeoutMillis = 5_000) {
+                registeredEmail == "jan@example.com"
+            }
+            assertFalse(viewModel.uiState.value.isLoading)
+        } finally {
+            if (!gate.isCompleted) {
+                gate.complete(Unit)
+            }
         }
-
-        composeRule.onNodeWithTag("register_first_name").assertIsNotEnabled()
-        composeRule.onNodeWithTag("register_last_name").assertIsNotEnabled()
-        composeRule.onNodeWithTag("register_email").assertIsNotEnabled()
-        composeRule.onNodeWithTag("register_password").assertIsNotEnabled()
-        composeRule.onNodeWithTag("register_confirm_password").assertIsNotEnabled()
-        composeRule.onNodeWithTag("register_bio").assertIsNotEnabled()
-        composeRule.onNodeWithTag("register_visibility_toggle").assertIsNotEnabled()
-        composeRule.onNodeWithTag("register_submit").assertIsNotEnabled()
-        composeRule.onNode(
-            hasProgressBarRangeInfo(ProgressBarRangeInfo.Indeterminate)
-        ).assertIsDisplayed()
-
-        composeRule.runOnIdle {
-            gate.complete(Unit)
-        }
-
-        composeRule.waitUntil(timeoutMillis = 5_000) {
-            registeredEmail == "jan@example.com"
-        }
-        assertFalse(viewModel.uiState.value.isLoading)
     }
 
     @Test
@@ -215,50 +229,5 @@ class RegisterScreenUiTest {
         composeRule.onNodeWithTag("register_email").performScrollTo().performTextInput(email)
         composeRule.onNodeWithTag("register_password").performScrollTo().performTextInput("Password1!")
         composeRule.onNodeWithTag("register_confirm_password").performScrollTo().performTextInput("Password1!")
-    }
-
-    private class FakeTokenStorage : TokenStorage {
-        private var access: String? = null
-        private var refresh: String? = null
-        override fun saveTokens(tokens: AuthTokens) {
-            access = tokens.accessToken
-            refresh = tokens.refreshToken
-        }
-        override fun getAccessToken(): String? = access
-        override fun getRefreshToken(): String? = refresh
-        override fun clearTokens() {
-            access = null
-            refresh = null
-        }
-    }
-
-    private class FakeAuthRepository : AuthRepository {
-        var registerResult: RegistrationResult = RegistrationResult.Success
-        var registerGate: CompletableDeferred<Unit>? = null
-        var registerCalls = 0
-
-        override suspend fun login(email: String, password: String): AuthenticatedAccount {
-            error("Login nie jest używany w tym teście.")
-        }
-
-        override suspend fun refresh(refreshToken: String): AuthenticatedAccount {
-            error("Refresh nie jest używany w tym teście.")
-        }
-
-        override suspend fun logout(accessToken: String, refreshToken: String) = Unit
-
-        override suspend fun register(
-            firstName: String,
-            lastName: String,
-            email: String,
-            password: String,
-            confirmPassword: String,
-            bio: String?,
-            isPublic: Boolean
-        ): RegistrationResult {
-            registerCalls++
-            registerGate?.await()
-            return registerResult
-        }
     }
 }

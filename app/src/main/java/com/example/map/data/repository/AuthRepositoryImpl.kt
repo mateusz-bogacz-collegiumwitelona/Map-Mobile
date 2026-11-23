@@ -1,16 +1,20 @@
 package com.example.map.data.repository
 
 import com.example.map.data.remote.dto.common.ApiEnvelope
+import com.example.map.data.remote.dto.request.ConfirmEmailRequest
 import com.example.map.data.remote.dto.request.LoginRequest
 import com.example.map.data.remote.dto.request.LogoutRequest
 import com.example.map.data.remote.dto.request.RefreshTokenRequest
 import com.example.map.data.remote.dto.request.RegisterRequest
+import com.example.map.data.remote.dto.request.ResendVerificationCodeRequest
 import com.example.map.data.remote.dto.response.AuthResponse
 import com.example.map.data.remote.service.AuthApiService
 import com.example.map.domain.model.AuthException
 import com.example.map.domain.model.AuthFailure
 import com.example.map.domain.model.AuthTokens
 import com.example.map.domain.model.AuthenticatedAccount
+import com.example.map.domain.model.EmailVerificationError
+import com.example.map.domain.model.EmailVerificationResult
 import com.example.map.domain.model.RegistrationError
 import com.example.map.domain.model.RegistrationResult
 import com.example.map.domain.repository.AuthRepository
@@ -133,6 +137,87 @@ class AuthRepositoryImpl @Inject constructor(
             onUnknownError = { msg -> RegistrationResult.Failure(RegistrationError.UNKNOWN, msg) }
         )
 
+    override suspend fun confirmEmail(
+        email: String,
+        code: String
+    ): EmailVerificationResult =
+        executeUnitApiCall(
+            json = json,
+            request = {
+                authApi.confirmEmail(
+                    ConfirmEmailRequest(
+                        email = email.trim(),
+                        code = code.trim()
+                    )
+                )
+            },
+            onSuccess = { EmailVerificationResult.Success },
+            onApiError = { status, codeValue, msg ->
+                EmailVerificationResult.Failure(
+                    error = mapEmailVerificationError(status, codeValue),
+                    message = msg
+                )
+            },
+            onNetworkError = {
+                EmailVerificationResult.Failure(
+                    error = EmailVerificationError.NETWORK,
+                    message = "Brak połączenia z serwerem."
+                )
+            },
+            onUnknownError = { msg ->
+                EmailVerificationResult.Failure(
+                    error = EmailVerificationError.UNKNOWN,
+                    message = msg
+                )
+            }
+        )
+
+    override suspend fun resendVerificationCode(
+        email: String
+    ): EmailVerificationResult =
+        executeUnitApiCall(
+            json = json,
+            request = {
+                authApi.resendVerificationCode(
+                    ResendVerificationCodeRequest(
+                        email = email.trim()
+                    )
+                )
+            },
+            onSuccess = { EmailVerificationResult.Success },
+            onApiError = { status, codeValue, msg ->
+                EmailVerificationResult.Failure(
+                    error = mapEmailVerificationError(status, codeValue),
+                    message = msg
+                )
+            },
+            onNetworkError = {
+                EmailVerificationResult.Failure(
+                    error = EmailVerificationError.NETWORK,
+                    message = "Brak połączenia z serwerem."
+                )
+            },
+            onUnknownError = { msg ->
+                EmailVerificationResult.Failure(
+                    error = EmailVerificationError.UNKNOWN,
+                    message = msg
+                )
+            }
+        )
+
+    private fun mapEmailVerificationError(
+        statusCode: Int,
+        errorCode: String?
+    ): EmailVerificationError =
+        when (errorCode) {
+            "COMMON_005" -> EmailVerificationError.RATE_LIMITED
+            else -> when (statusCode) {
+                429 -> EmailVerificationError.RATE_LIMITED
+                400 -> EmailVerificationError.INVALID_CODE
+                else -> EmailVerificationError.UNKNOWN
+            }
+        }
+
     private fun AuthResponse.toDomain() = AuthenticatedAccount(
         tokens = AuthTokens(
             accessToken = accessToken,
@@ -177,4 +262,5 @@ class AuthRepositoryImpl @Inject constructor(
                 else -> RegistrationError.UNKNOWN
             }
         }
+
 }

@@ -9,14 +9,13 @@ import androidx.compose.ui.test.performClick
 import androidx.test.espresso.Espresso
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.example.map.domain.model.AuthTokens
-import com.example.map.domain.model.AuthenticatedAccount
-import com.example.map.domain.model.RegistrationResult
 import com.example.map.domain.model.UserProfile
-import com.example.map.domain.repository.AuthRepository
 import com.example.map.domain.session.AccountSession
 import com.example.map.domain.session.AuthSession
 import com.example.map.testing.FakeAccountRepository
+import com.example.map.testing.FakeAuthRepository
 import com.example.map.testing.FakeProfileStorage
+import com.example.map.testing.FakeTokenStorage
 import com.example.map.testing.FakeUserProfileRepository
 import com.example.map.ui.navigation.AppNavigation
 import com.example.map.ui.viewmodels.AuthViewModel
@@ -37,17 +36,12 @@ class MainActivityLogoutTest {
 
     private lateinit var tokenStorage: FakeTokenStorage
     private lateinit var profileStorage: FakeProfileStorage
+    private lateinit var authRepository: FakeAuthRepository
     private lateinit var accountSession: AccountSession
     private lateinit var authSession: AuthSession
 
-    private var remotelyLoggedOutAccessToken: String? = null
-    private var remotelyLoggedOutRefreshToken: String? = null
-
     @Before
     fun setUp() {
-        remotelyLoggedOutAccessToken = null
-        remotelyLoggedOutRefreshToken = null
-
         tokenStorage = FakeTokenStorage(
             initialTokens = AuthTokens(
                 accessToken = "access-test-token",
@@ -58,41 +52,7 @@ class MainActivityLogoutTest {
             initialProfile = UserProfile(firstName = "Jan", lastName = "Kowalski"),
             initialEmail = "user@example.com"
         )
-
-        val authRepository = object : AuthRepository {
-            override suspend fun login(
-                email: String,
-                password: String
-            ): AuthenticatedAccount {
-                error("Login nie jest używany w tym teście.")
-            }
-
-            override suspend fun refresh(
-                refreshToken: String
-            ): AuthenticatedAccount {
-                error("Refresh nie powinien być wywołany po udanym logout.")
-            }
-
-            override suspend fun logout(
-                accessToken: String,
-                refreshToken: String
-            ) {
-                remotelyLoggedOutAccessToken = accessToken
-                remotelyLoggedOutRefreshToken = refreshToken
-            }
-
-            override suspend fun register(
-                firstName: String,
-                lastName: String,
-                email: String,
-                password: String,
-                confirmPassword: String,
-                bio: String?,
-                isPublic: Boolean
-            ): RegistrationResult {
-                error("Rejestracja nie jest używana w tym teście.")
-            }
-        }
+        authRepository = FakeAuthRepository()
 
         authSession = AuthSession(tokenStorage, authRepository)
         accountSession = AccountSession(
@@ -131,8 +91,8 @@ class MainActivityLogoutTest {
         composeRule.onNodeWithText("Zaloguj się").assertIsDisplayed()
 
         composeRule.runOnIdle {
-            assertEquals("access-test-token", remotelyLoggedOutAccessToken)
-            assertEquals("refresh-test-token", remotelyLoggedOutRefreshToken)
+            assertEquals("access-test-token", authRepository.lastLoggedOutAccessToken)
+            assertEquals("refresh-test-token", authRepository.lastLoggedOutRefreshToken)
             assertNull(tokenStorage.getAccessToken())
             assertNull(tokenStorage.getRefreshToken())
             assertNull(profileStorage.getEmail())
