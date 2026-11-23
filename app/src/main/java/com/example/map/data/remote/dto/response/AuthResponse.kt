@@ -1,10 +1,10 @@
-package com.example.map.data.remote.dto
+package com.example.map.data.remote.dto.response
 
 import kotlinx.serialization.Serializable
 
 
 @Serializable
-data class AuthResponseDto(
+data class AuthResponse(
     val userId: String,
     val roles: List<String>,
     val accessToken: String,

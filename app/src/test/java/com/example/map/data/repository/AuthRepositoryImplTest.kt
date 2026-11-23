@@ -1,6 +1,6 @@
 package com.example.map.data.repository
 
-import com.example.map.data.remote.service.AuthApi
+import com.example.map.data.remote.service.AuthApiService
 import com.example.map.domain.model.AuthException
 import com.example.map.domain.model.AuthFailure
 import kotlinx.coroutines.runBlocking
@@ -47,7 +47,7 @@ class AuthRepositoryImplTest {
             .build()
 
         repository = AuthRepositoryImpl(
-            authApi = retrofit.create(AuthApi::class.java),
+            authApi = retrofit.create(AuthApiService::class.java),
             json = json
         )
     }

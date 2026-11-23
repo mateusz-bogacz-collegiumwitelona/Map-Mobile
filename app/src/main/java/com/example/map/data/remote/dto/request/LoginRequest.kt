@@ -1,9 +1,9 @@
-package com.example.map.data.remote.dto
+package com.example.map.data.remote.dto.request
 
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class LoginRequestDto(
+data class LoginRequest(
     val email: String,
     val password: String
 )

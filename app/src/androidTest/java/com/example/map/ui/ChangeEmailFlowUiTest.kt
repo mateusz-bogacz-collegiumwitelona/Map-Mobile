@@ -14,7 +14,7 @@ import androidx.compose.ui.test.performTextInput
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.example.map.domain.model.EmailChangeError
 import com.example.map.domain.model.EmailChangeResult
-import com.example.map.domain.usecase.AccountSession
+import com.example.map.domain.session.AccountSession
 import com.example.map.testing.FakeAccountRepository
 import com.example.map.testing.FakeProfileStorage
 import com.example.map.testing.FakeUserProfileRepository

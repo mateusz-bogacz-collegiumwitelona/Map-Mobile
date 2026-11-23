@@ -6,7 +6,7 @@ import com.example.map.domain.model.AuthTokens
 import com.example.map.domain.model.AuthenticatedAccount
 import com.example.map.domain.repository.AuthRepository
 import com.example.map.domain.repository.TokenStorage
-import com.example.map.domain.usecase.AuthSession
+import com.example.map.domain.session.AuthSession
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse

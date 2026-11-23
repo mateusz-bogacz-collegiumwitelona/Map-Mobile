@@ -5,8 +5,8 @@ import androidx.lifecycle.viewModelScope
 import com.example.map.domain.model.ProfileUpdateError
 import com.example.map.domain.model.ProfileUpdateResult
 import com.example.map.domain.model.UserProfile
-import com.example.map.domain.usecase.AccountSession
-import com.example.map.domain.usecase.AuthSession
+import com.example.map.domain.session.AccountSession
+import com.example.map.domain.session.AuthSession
 import com.example.map.domain.validation.ProfileNameError
 import com.example.map.domain.validation.ProfileNameValidator
 import dagger.hilt.android.lifecycle.HiltViewModel

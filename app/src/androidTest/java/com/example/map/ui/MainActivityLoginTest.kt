@@ -13,8 +13,8 @@ import com.example.map.domain.model.AuthTokens
 import com.example.map.domain.model.AuthenticatedAccount
 import com.example.map.domain.model.UserProfile
 import com.example.map.domain.repository.AuthRepository
-import com.example.map.domain.usecase.AccountSession
-import com.example.map.domain.usecase.AuthSession
+import com.example.map.domain.session.AccountSession
+import com.example.map.domain.session.AuthSession
 import com.example.map.testing.FakeAccountRepository
 import com.example.map.testing.FakeProfileStorage
 import com.example.map.testing.FakeUserProfileRepository

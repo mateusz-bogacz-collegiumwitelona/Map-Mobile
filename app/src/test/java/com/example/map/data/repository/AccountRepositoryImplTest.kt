@@ -1,11 +1,10 @@
 package com.example.map.data.repository
 
-import com.example.map.data.remote.dto.ApiEnvelopeDto
-import com.example.map.data.remote.dto.ApiResultDto
-import com.example.map.data.remote.dto.ChangeEmailRequestDto
-import com.example.map.data.remote.dto.ConfirmEmailChangeRequestDto
-import com.example.map.data.remote.dto.EditUserNamesRequestDto
-import com.example.map.data.remote.dto.UserProfileDataDto
+import com.example.map.data.remote.dto.common.ApiEnvelope
+import com.example.map.data.remote.dto.request.ChangeEmailRequest
+import com.example.map.data.remote.dto.request.ConfirmEmailChangeRequest
+import com.example.map.data.remote.dto.request.EditUserNamesRequest
+import com.example.map.data.remote.dto.response.UserProfileDataResponse
 import com.example.map.data.remote.service.UserApiService
 import com.example.map.domain.model.AccountDeletionError
 import com.example.map.domain.model.AccountDeletionResult
@@ -26,7 +25,7 @@ class RemoteAccountRepositoryTest {
         ignoreUnknownKeys = true
     }
     private val service = FakeUserApiService()
-    private val repository = RemoteAccountRepository(service, json)
+    private val repository = AccountRepositoryImpl(service, json)
 
     @Test
     fun mapsEmailTakenErrorCodeToEmailTaken() = runTest {
@@ -239,7 +238,7 @@ class RemoteAccountRepositoryTest {
 
     @Test
     fun returnsSuccessWhenDeletionSucceeds() = runTest {
-        service.deleteResponse = Response.success(ApiResultDto(isSuccess = true))
+        service.deleteResponse = Response.success(ApiEnvelope<Unit>(isSuccess = true))
 
         assertEquals(AccountDeletionResult.Success, repository.deleteAccount())
     }
@@ -248,9 +247,9 @@ class RemoteAccountRepositoryTest {
         status: Int,
         errorCode: String? = null,
         message: String? = null
-    ): Response<ApiResultDto> {
+    ): Response<ApiEnvelope<Unit>> {
         val body = json.encodeToString(
-            ApiResultDto(
+            ApiEnvelope<Unit>(
                 isSuccess = false,
                 message = message,
                 errorCode = errorCode
@@ -265,46 +264,46 @@ class RemoteAccountRepositoryTest {
 
 private class FakeUserApiService : UserApiService {
 
-    var requestResponse: Response<ApiResultDto> =
-        Response.success(ApiResultDto(isSuccess = true))
-    var confirmResponse: Response<ApiResultDto> =
-        Response.success(ApiResultDto(isSuccess = true))
-    var deleteResponse: Response<ApiResultDto> =
-        Response.success(ApiResultDto(isSuccess = true))
+    var requestResponse: Response<ApiEnvelope<Unit>> =
+        Response.success(ApiEnvelope<Unit>(isSuccess = true))
+    var confirmResponse: Response<ApiEnvelope<Unit>> =
+        Response.success(ApiEnvelope<Unit>(isSuccess = true))
+    var deleteResponse: Response<ApiEnvelope<Unit>> =
+        Response.success(ApiEnvelope<Unit>(isSuccess = true))
 
     var requestException: Exception? = null
     var confirmException: Exception? = null
     var deleteException: Exception? = null
 
-    override suspend fun getProfile(): Response<ApiEnvelopeDto<UserProfileDataDto>> {
+    override suspend fun getProfile(): Response<ApiEnvelope<UserProfileDataResponse>> {
         error("Nie używane w testach konta.")
     }
 
     override suspend fun updateNames(
-        request: EditUserNamesRequestDto
-    ): Response<ApiResultDto> {
+        request: EditUserNamesRequest
+    ): Response<ApiEnvelope<Unit>> {
         error("Nie używane w testach konta.")
     }
 
-    override suspend fun setVisibility(isPublic: Boolean): Response<ApiResultDto> {
+    override suspend fun setVisibility(isPublic: Boolean): Response<ApiEnvelope<Unit>> {
         error("Nie używane w testach konta.")
     }
 
     override suspend fun requestEmailChange(
-        request: ChangeEmailRequestDto
-    ): Response<ApiResultDto> {
+        request: ChangeEmailRequest
+    ): Response<ApiEnvelope<Unit>> {
         requestException?.let { throw it }
         return requestResponse
     }
 
     override suspend fun confirmEmailChange(
-        request: ConfirmEmailChangeRequestDto
-    ): Response<ApiResultDto> {
+        request: ConfirmEmailChangeRequest
+    ): Response<ApiEnvelope<Unit>> {
         confirmException?.let { throw it }
         return confirmResponse
     }
 
-    override suspend fun deleteAccount(): Response<ApiResultDto> {
+    override suspend fun deleteAccount(): Response<ApiEnvelope<Unit>> {
         deleteException?.let { throw it }
         return deleteResponse
     }

@@ -15,7 +15,7 @@ import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.example.map.domain.model.AccountDeletionError
 import com.example.map.domain.model.AccountDeletionResult
-import com.example.map.domain.usecase.AccountSession
+import com.example.map.domain.session.AccountSession
 import com.example.map.testing.FakeAccountRepository
 import com.example.map.testing.FakeProfileStorage
 import com.example.map.testing.FakeUserProfileRepository

@@ -1,4 +1,4 @@
-package com.example.map.domain.usecase
+package com.example.map.domain.session
 
 import com.example.map.domain.model.AccountDeletionResult
 import com.example.map.domain.model.EmailChangeResult

@@ -7,6 +7,7 @@ import com.example.map.domain.model.AuthTokens
 import com.example.map.domain.repository.TokenStorage
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
+import androidx.core.content.edit
 
 class TokenManager @Inject constructor(
     @ApplicationContext context: Context
@@ -27,10 +28,10 @@ class TokenManager @Inject constructor(
     }
 
     override fun saveTokens(tokens: AuthTokens) {
-        sharedPreferences.edit()
-            .putString(ACCESS_TOKEN_KEY, tokens.accessToken)
-            .putString(REFRESH_TOKEN_KEY, tokens.refreshToken)
-            .apply()
+        sharedPreferences.edit {
+            putString(ACCESS_TOKEN_KEY, tokens.accessToken)
+                .putString(REFRESH_TOKEN_KEY, tokens.refreshToken)
+        }
     }
 
     override fun getAccessToken(): String? =

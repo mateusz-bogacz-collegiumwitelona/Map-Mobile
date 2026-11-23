@@ -1,8 +1,8 @@
-package com.example.map.data.remote.dto
+package com.example.map.data.remote.dto.request
 
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class LogoutRequestDto(
+data class LogoutRequest(
     val refreshToken: String
 )

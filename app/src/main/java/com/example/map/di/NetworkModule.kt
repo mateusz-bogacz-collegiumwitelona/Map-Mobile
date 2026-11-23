@@ -2,7 +2,7 @@ package com.example.map.di
 
 import com.example.map.BuildConfig
 import com.example.map.data.remote.AuthInterceptor
-import com.example.map.data.remote.service.AuthApi
+import com.example.map.data.remote.service.AuthApiService
 import com.example.map.data.remote.service.UserApiService
 import dagger.Module
 import dagger.Provides
@@ -71,8 +71,8 @@ object NetworkModule {
 
     @Provides
     @Singleton
-    fun provideAuthApi(retrofit: Retrofit): AuthApi =
-        retrofit.create(AuthApi::class.java)
+    fun provideAuthApiService(retrofit: Retrofit): AuthApiService =
+        retrofit.create(AuthApiService::class.java)
 
     @Provides
     @Singleton

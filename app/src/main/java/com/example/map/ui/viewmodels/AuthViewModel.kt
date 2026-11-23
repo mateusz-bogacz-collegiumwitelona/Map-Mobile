@@ -4,8 +4,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.map.domain.model.AuthException
 import com.example.map.domain.model.AuthFailure
-import com.example.map.domain.usecase.AccountSession
-import com.example.map.domain.usecase.AuthSession
+import com.example.map.domain.session.AccountSession
+import com.example.map.domain.session.AuthSession
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.util.concurrent.CancellationException
 import javax.inject.Inject

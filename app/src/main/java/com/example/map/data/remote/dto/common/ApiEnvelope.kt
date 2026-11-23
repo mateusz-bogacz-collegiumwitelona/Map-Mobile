@@ -1,9 +1,9 @@
-package com.example.map.data.remote.dto
+package com.example.map.data.remote.dto.common
 
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class ApiEnvelopeDto<T>(
+data class ApiEnvelope<T>(
     val isSuccess: Boolean = false,
     val message: String? = null,
     val errorCode: String? = null,

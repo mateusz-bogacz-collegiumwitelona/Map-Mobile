@@ -1,9 +1,10 @@
 package com.example.map.data.repository
 
-import com.example.map.data.remote.dto.ApiEnvelopeDto
-import com.example.map.data.remote.dto.ApiResultDto
-import com.example.map.data.remote.dto.EditUserNamesRequestDto
-import com.example.map.data.remote.dto.UserProfileDataDto
+import com.example.map.data.remote.dto.common.ApiEnvelope
+import com.example.map.data.remote.dto.request.ChangeEmailRequest
+import com.example.map.data.remote.dto.request.ConfirmEmailChangeRequest
+import com.example.map.data.remote.dto.request.EditUserNamesRequest
+import com.example.map.data.remote.dto.response.UserProfileDataResponse
 import com.example.map.data.remote.service.UserApiService
 import com.example.map.domain.model.ProfileUpdateError
 import com.example.map.domain.model.ProfileUpdateResult
@@ -22,11 +23,11 @@ class RemoteProfileRepositoryTest {
 
     private val json = Json { ignoreUnknownKeys = true }
     private val service = FakeProfileApiService()
-    private val repository = RemoteProfileRepository(service, json)
+    private val repository = ProfileRepositoryImpl(service, json)
 
     @Test
     fun updateNamesSendsTrimmedFreePayloadAndReturnsSuccess() = runTest {
-        service.updateNamesResponse = Response.success(ApiResultDto(isSuccess = true))
+        service.updateNamesResponse = Response.success(ApiEnvelope<Unit>(isSuccess = true))
 
         val result = repository.updateNames("Anna", "Nowak")
 
@@ -36,7 +37,7 @@ class RemoteProfileRepositoryTest {
 
     @Test
     fun setVisibilitySendsRequestedValueAndReturnsSuccess() = runTest {
-        service.setVisibilityResponse = Response.success(ApiResultDto(isSuccess = true))
+        service.setVisibilityResponse = Response.success(ApiEnvelope<Unit>(isSuccess = true))
 
         val result = repository.setVisibility(isPublic = true)
 
@@ -170,7 +171,7 @@ class RemoteProfileRepositoryTest {
     @Test
     fun parsesErrorBodyWhenResultIsDeliveredAsErrorResponse() = runTest {
         val body = json.encodeToString(
-            ApiResultDto(
+            ApiEnvelope<Unit>(
                 isSuccess = false,
                 message = "Invalid first name",
                 errorCode = "USR_001"
@@ -203,9 +204,9 @@ class RemoteProfileRepositoryTest {
     @Test
     fun getProfileNormalizesMissingNamesToEmptyStrings() = runTest {
         service.profileResponse = Response.success(
-            ApiEnvelopeDto(
+            ApiEnvelope(
                 isSuccess = true,
-                data = UserProfileDataDto(
+                data = UserProfileDataResponse(
                     userId = "test-user-id",
                     firstName = null,
                     lastName = null,
@@ -221,7 +222,7 @@ class RemoteProfileRepositoryTest {
     @Test
     fun getProfileReturnsNullWhenResponseIsUnsuccessful() = runTest {
         service.profileResponse = Response.success(
-            ApiEnvelopeDto(isSuccess = false, errorCode = "COMMON_002")
+            ApiEnvelope(isSuccess = false, errorCode = "COMMON_002")
         )
 
         assertNull(repository.getProfile())
@@ -245,9 +246,9 @@ class RemoteProfileRepositoryTest {
         status: Int,
         errorCode: String? = null,
         message: String? = null
-    ): Response<ApiResultDto> {
+    ): Response<ApiEnvelope<Unit>> {
         val body = json.encodeToString(
-            ApiResultDto(
+            ApiEnvelope<Unit>(
                 isSuccess = false,
                 message = message,
                 errorCode = errorCode
@@ -261,9 +262,9 @@ class RemoteProfileRepositoryTest {
 
     private fun errorProfileResponse(
         status: Int
-    ): Response<ApiEnvelopeDto<UserProfileDataDto>> {
+    ): Response<ApiEnvelope<UserProfileDataResponse>> {
         val body = json.encodeToString(
-            ApiEnvelopeDto<UserProfileDataDto>(
+            ApiEnvelope<UserProfileDataResponse>(
                 isSuccess = false,
                 message = "Session expired",
                 errorCode = "ACCESS_DENIED"
@@ -278,11 +279,11 @@ class RemoteProfileRepositoryTest {
 
 private class FakeProfileApiService : UserApiService {
 
-    var profileResponse: Response<ApiEnvelopeDto<UserProfileDataDto>> =
+    var profileResponse: Response<ApiEnvelope<UserProfileDataResponse>> =
         Response.success(
-            ApiEnvelopeDto(
+            ApiEnvelope(
                 isSuccess = true,
-                data = UserProfileDataDto(
+                data = UserProfileDataResponse(
                     userId = "test-user-id",
                     firstName = "Jan",
                     lastName = "Kowalski",
@@ -291,10 +292,10 @@ private class FakeProfileApiService : UserApiService {
                 )
             )
         )
-    var updateNamesResponse: Response<ApiResultDto> =
-        Response.success(ApiResultDto(isSuccess = true))
-    var setVisibilityResponse: Response<ApiResultDto> =
-        Response.success(ApiResultDto(isSuccess = true))
+    var updateNamesResponse: Response<ApiEnvelope<Unit>> =
+        Response.success(ApiEnvelope<Unit>(isSuccess = true))
+    var setVisibilityResponse: Response<ApiEnvelope<Unit>> =
+        Response.success(ApiEnvelope<Unit>(isSuccess = true))
 
     var profileException: Exception? = null
     var updateNamesException: Exception? = null
@@ -303,38 +304,38 @@ private class FakeProfileApiService : UserApiService {
     var lastNames: Pair<String, String>? = null
     var lastVisibility: Boolean? = null
 
-    override suspend fun getProfile(): Response<ApiEnvelopeDto<UserProfileDataDto>> {
+    override suspend fun getProfile(): Response<ApiEnvelope<UserProfileDataResponse>> {
         profileException?.let { throw it }
         return profileResponse
     }
 
     override suspend fun updateNames(
-        request: EditUserNamesRequestDto
-    ): Response<ApiResultDto> {
+        request: EditUserNamesRequest
+    ): Response<ApiEnvelope<Unit>> {
         updateNamesException?.let { throw it }
         lastNames = request.firstName to request.lastName
         return updateNamesResponse
     }
 
-    override suspend fun setVisibility(isPublic: Boolean): Response<ApiResultDto> {
+    override suspend fun setVisibility(isPublic: Boolean): Response<ApiEnvelope<Unit>> {
         setVisibilityException?.let { throw it }
         lastVisibility = isPublic
         return setVisibilityResponse
     }
 
     override suspend fun requestEmailChange(
-        request: com.example.map.data.remote.dto.ChangeEmailRequestDto
-    ): Response<ApiResultDto> {
+        request: ChangeEmailRequest
+    ): Response<ApiEnvelope<Unit>> {
         error("Nie używane w testach profilu.")
     }
 
     override suspend fun confirmEmailChange(
-        request: com.example.map.data.remote.dto.ConfirmEmailChangeRequestDto
-    ): Response<ApiResultDto> {
+        request: ConfirmEmailChangeRequest
+    ): Response<ApiEnvelope<Unit>> {
         error("Nie używane w testach profilu.")
     }
 
-    override suspend fun deleteAccount(): Response<ApiResultDto> {
+    override suspend fun deleteAccount(): Response<ApiEnvelope<Unit>> {
         error("Nie używane w testach profilu.")
     }
 }

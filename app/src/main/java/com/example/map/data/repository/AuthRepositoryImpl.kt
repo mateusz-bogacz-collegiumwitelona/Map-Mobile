@@ -1,10 +1,9 @@
 package com.example.map.data.repository
 
-import com.example.map.data.remote.dto.ApiErrorDto
-import com.example.map.data.remote.dto.AuthResponseDto
-import com.example.map.data.remote.dto.LogoutRequestDto
-import com.example.map.data.remote.dto.LoginRequestDto
-import com.example.map.data.remote.service.AuthApi
+import com.example.map.data.remote.dto.response.AuthResponse
+import com.example.map.data.remote.dto.request.LogoutRequest
+import com.example.map.data.remote.dto.request.LoginRequest
+import com.example.map.data.remote.service.AuthApiService
 import com.example.map.domain.model.AuthException
 import com.example.map.domain.model.AuthFailure
 import com.example.map.domain.model.AuthTokens
@@ -13,13 +12,13 @@ import com.example.map.domain.repository.AuthRepository
 import java.io.IOException
 import javax.inject.Inject
 import kotlinx.serialization.json.Json
-import com.example.map.data.remote.dto.RefreshTokenRequestDto
-import com.example.map.data.remote.dto.ApiEnvelopeDto
+import com.example.map.data.remote.dto.request.RefreshTokenRequest
+import com.example.map.data.remote.dto.common.ApiEnvelope
 import kotlinx.serialization.SerializationException
 import retrofit2.Response
 
 class AuthRepositoryImpl @Inject constructor(
-    private val authApi: AuthApi,
+    private val authApi: AuthApiService,
     private val json: Json
 ) : AuthRepository {
 
@@ -28,17 +27,17 @@ class AuthRepositoryImpl @Inject constructor(
         password: String
     ): AuthenticatedAccount =
         executeAuthCall {
-            authApi.login(LoginRequestDto(email = email, password = password))
+            authApi.login(LoginRequest(email = email, password = password))
         }.toDomain()
 
     override suspend fun refresh(
         refreshToken: String
     ): AuthenticatedAccount =
         executeAuthCall {
-            authApi.refresh(RefreshTokenRequestDto(refreshToken))
+            authApi.refresh(RefreshTokenRequest(refreshToken))
         }.toDomain()
     private suspend fun <T : Any> executeAuthCall(
-        apiCall: suspend () -> Response<ApiEnvelopeDto<T>>
+        apiCall: suspend () -> Response<ApiEnvelope<T>>
     ): T {
         val response = try {
             apiCall()
@@ -50,7 +49,7 @@ class AuthRepositoryImpl @Inject constructor(
 
         if (!response.isSuccessful) {
             throw failure(
-                errorCode = readErrorCode(response.errorBody()?.string()),
+                errorCode = response.parseErrorEnvelope(json)?.errorCode,
                 statusCode = response.code()
             )
         }
@@ -76,14 +75,14 @@ class AuthRepositoryImpl @Inject constructor(
         val response = try {
             authApi.logout(
                 authorization = "Bearer $accessToken",
-                request = LogoutRequestDto(refreshToken)
+                request = LogoutRequest(refreshToken)
             )
         } catch (error: IOException) {
             throw AuthException(AuthFailure.NETWORK_ERROR, error)
         }
 
         if (!response.isSuccessful) {
-            val errorCode = readErrorCode(response.errorBody()?.string())
+            val errorCode = response.parseErrorEnvelope(json)?.errorCode
 
             if (response.code() == 401 || errorCode == "AUTH_003") {
                 throw AuthException(AuthFailure.INVALID_SESSION)
@@ -98,23 +97,13 @@ class AuthRepositoryImpl @Inject constructor(
         response.body()?.close()
     }
 
-    private fun AuthResponseDto.toDomain() = AuthenticatedAccount(
+    private fun AuthResponse.toDomain() = AuthenticatedAccount(
         tokens = AuthTokens(
             accessToken = accessToken,
             refreshToken = refreshToken
         ),
         roles = roles
     )
-
-    private fun readErrorCode(body: String?): String? {
-        if (body.isNullOrBlank()) return null
-
-        return try {
-            json.decodeFromString<ApiErrorDto>(body).errorCode
-        } catch (_: Exception) {
-            null
-        }
-    }
 
     private fun failure(errorCode: String?, statusCode: Int): AuthException {
         val reason = when (errorCode) {
