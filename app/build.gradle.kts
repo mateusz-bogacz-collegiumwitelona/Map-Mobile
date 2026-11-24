@@ -124,6 +124,10 @@ android {
         compose = true
         buildConfig = true
     }
+
+    testOptions {
+        animationsDisabled = true // for faster tests
+    }
 }
 
 dependencies {
