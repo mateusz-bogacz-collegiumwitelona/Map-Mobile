@@ -1,15 +1,15 @@
 package com.example.map.ui.viewmodels
 
 import com.example.map.domain.model.AuthTokens
+import com.example.map.domain.model.AuthenticatedAccount
 import com.example.map.domain.model.UserProfile
-import com.example.map.domain.usecase.AccountSession
-import com.example.map.domain.usecase.AuthSession
+import com.example.map.domain.session.AccountSession
+import com.example.map.domain.session.AuthSession
 import com.example.map.testing.FakeAccountRepository
 import com.example.map.testing.FakeAuthRepository
 import com.example.map.testing.FakeProfileStorage
 import com.example.map.testing.FakeTokenStorage
 import com.example.map.testing.FakeUserProfileRepository
-import java.io.IOException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -25,6 +25,7 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
+import java.io.IOException
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class AuthViewModelTest {
@@ -45,7 +46,15 @@ class AuthViewModelTest {
     fun loginPersistsEmailAfterSuccessfulAuthentication() = runTest(dispatcher) {
         val tokenStorage = FakeTokenStorage()
         val profileStorage = FakeProfileStorage()
-        val authRepository = FakeAuthRepository()
+        val authRepository = FakeAuthRepository().apply {
+            loginAccount = AuthenticatedAccount(
+                tokens = AuthTokens(
+                    accessToken = "access-test",
+                    refreshToken = "refresh-test"
+                ),
+                roles = listOf("USER")
+            )
+        }
         val accountSession = AccountSession(
             accountRepository = FakeAccountRepository(),
             profileRepository = FakeUserProfileRepository(),
@@ -89,7 +98,10 @@ class AuthViewModelTest {
             UserProfile(firstName = "Anna", lastName = "Nowak"),
             viewModel.uiState.value.profile
         )
-        assertEquals(UserProfile(firstName = "Anna", lastName = "Nowak"), accountSession.profile.value)
+        assertEquals(
+            UserProfile(firstName = "Anna", lastName = "Nowak"),
+            accountSession.profile.value
+        )
     }
 
     @Test

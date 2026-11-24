@@ -7,7 +7,7 @@ object EmailValidator {
     fun isValid(email: String): Boolean {
         val trimmed = email.trim()
         return trimmed.isNotEmpty() &&
-            trimmed.length <= MAX_LENGTH &&
-            EMAIL_REGEX.matches(trimmed)
+                trimmed.length <= MAX_LENGTH &&
+                EMAIL_REGEX.matches(trimmed)
     }
 }

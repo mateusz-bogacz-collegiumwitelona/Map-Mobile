@@ -1,7 +1,6 @@
 import java.net.URI
 import java.net.URISyntaxException
 import java.util.Properties
-import org.gradle.api.tasks.testing.AbstractTestTask
 
 plugins {
     alias(libs.plugins.android.application)
@@ -124,6 +123,10 @@ android {
     buildFeatures {
         compose = true
         buildConfig = true
+    }
+
+    testOptions {
+        animationsDisabled = true // for faster tests
     }
 }
 

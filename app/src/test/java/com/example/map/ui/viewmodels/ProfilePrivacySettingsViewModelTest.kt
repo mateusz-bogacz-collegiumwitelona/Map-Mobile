@@ -3,8 +3,8 @@ package com.example.map.ui.viewmodels
 import com.example.map.domain.model.ProfileUpdateError
 import com.example.map.domain.model.ProfileUpdateResult
 import com.example.map.domain.model.UserProfile
-import com.example.map.domain.usecase.AccountSession
-import com.example.map.domain.usecase.AuthSession
+import com.example.map.domain.session.AccountSession
+import com.example.map.domain.session.AuthSession
 import com.example.map.testing.FakeAccountRepository
 import com.example.map.testing.FakeAuthRepository
 import com.example.map.testing.FakeProfileStorage
@@ -314,12 +314,12 @@ class ProfilePrivacySettingsViewModelTest {
         val cases = listOf(
             ProfileUpdateError.FIRST_NAME_INVALID to "Imię musi mieć od 2 do 50 znaków.",
             ProfileUpdateError.LAST_NAME_INVALID to
-                "Nazwisko musi mieć od 2 do 50 znaków.",
+                    "Nazwisko musi mieć od 2 do 50 znaków.",
             ProfileUpdateError.UNAUTHORIZED to "Sesja wygasła. Zaloguj się ponownie.",
             ProfileUpdateError.NOT_FOUND to
-                "Konto nie istnieje lub zostało usunięte.",
+                    "Konto nie istnieje lub zostało usunięte.",
             ProfileUpdateError.RATE_LIMITED to
-                "Zbyt wiele żądań. Odczekaj chwilę i spróbuj ponownie."
+                    "Zbyt wiele żądań. Odczekaj chwilę i spróbuj ponownie."
         )
 
         cases.forEach { (error, expectedMessage) ->

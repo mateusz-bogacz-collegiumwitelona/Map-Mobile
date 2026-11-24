@@ -1,9 +1,11 @@
 package com.example.map.ui
 
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.assertIsOff
 import androidx.compose.ui.test.assertIsOn
-import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.assertTextContains
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
@@ -12,15 +14,13 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTextClearance
 import androidx.compose.ui.test.performTextInput
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.example.map.domain.model.AuthTokens
 import com.example.map.domain.model.ProfileUpdateError
 import com.example.map.domain.model.ProfileUpdateResult
 import com.example.map.domain.model.UserProfile
-import com.example.map.domain.usecase.AccountSession
-import com.example.map.domain.usecase.AuthSession
+import com.example.map.domain.session.AccountSession
+import com.example.map.domain.session.AuthSession
 import com.example.map.testing.FakeAccountRepository
 import com.example.map.testing.FakeAuthRepository
 import com.example.map.testing.FakeProfileStorage

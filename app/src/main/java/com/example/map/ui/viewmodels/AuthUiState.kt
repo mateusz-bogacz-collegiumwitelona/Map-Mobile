@@ -8,5 +8,6 @@ data class AuthUiState(
     val emailError: String? = null,
     val passwordError: String? = null,
     val errorMessage: String? = null,
-    val profile: UserProfile = UserProfile()
+    val profile: UserProfile = UserProfile(),
+    val requiresEmailVerification: Boolean = false
 )

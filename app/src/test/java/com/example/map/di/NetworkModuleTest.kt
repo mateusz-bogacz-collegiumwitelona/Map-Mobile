@@ -164,6 +164,7 @@ class NetworkModuleTest {
     private data class JsonSample(
         val name: String
     )
+
     private interface ProbeApi {
         @POST("probe")
         fun probe(@Body sample: JsonSample): Call<JsonSample>
