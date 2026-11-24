@@ -92,11 +92,22 @@ class AuthViewModel @Inject constructor(
             } catch (cancelled: CancellationException) {
                 throw cancelled
             } catch (error: AuthException) {
-                _uiState.update {
-                    it.copy(
-                        isLoading = false,
-                        errorMessage = messageFor(error.failure)
-                    )
+                if (error.failure == AuthFailure.EMAIL_NOT_CONFIRMED) {
+                    authSession.setPendingVerificationEmail(normalizedEmail)
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            errorMessage = null,
+                            requiresEmailVerification = true
+                        )
+                    }
+                } else {
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            errorMessage = messageFor(error.failure)
+                        )
+                    }
                 }
             } catch (_: Exception) {
                 _uiState.update {
@@ -107,6 +118,10 @@ class AuthViewModel @Inject constructor(
                 }
             }
         }
+    }
+
+    fun consumeEmailVerificationNavigation() {
+        _uiState.update { it.copy(requiresEmailVerification = false) }
     }
 
     private fun hydrateProfile() {

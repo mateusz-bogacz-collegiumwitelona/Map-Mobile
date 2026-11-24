@@ -58,6 +58,8 @@ class ConfirmEmailViewModel @Inject constructor(
     }
 
     fun confirmEmail() {
+        if (_uiState.value.isSubmitting) return
+
         val currentCode = _uiState.value.code.trim()
         if (currentCode.length != 6) {
             _uiState.update {
@@ -86,11 +88,12 @@ class ConfirmEmailViewModel @Inject constructor(
                         )
                     }
                 }
+
                 is EmailVerificationResult.Failure -> {
                     _uiState.update {
                         it.copy(
                             isSubmitting = false,
-                            errorMessage = result.message ?: mapVerificationError(result.error)
+                            errorMessage = mapVerificationError(result.error)
                         )
                     }
                 }
@@ -99,6 +102,8 @@ class ConfirmEmailViewModel @Inject constructor(
     }
 
     fun resendCode() {
+        if (_uiState.value.isResending) return
+
         viewModelScope.launch {
             _uiState.update {
                 it.copy(
@@ -117,11 +122,12 @@ class ConfirmEmailViewModel @Inject constructor(
                         )
                     }
                 }
+
                 is EmailVerificationResult.Failure -> {
                     _uiState.update {
                         it.copy(
                             isResending = false,
-                            errorMessage = result.message ?: mapVerificationError(result.error)
+                            errorMessage = mapVerificationError(result.error)
                         )
                     }
                 }

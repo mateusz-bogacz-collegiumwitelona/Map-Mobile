@@ -8,7 +8,7 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
-import com.example.map.ui.auth.ConfirmEmailScreen
+import com.example.map.ui.screens.ConfirmEmailScreen
 import com.example.map.ui.viewmodels.ConfirmEmailUiState
 import org.junit.Assert.assertEquals
 import org.junit.Rule

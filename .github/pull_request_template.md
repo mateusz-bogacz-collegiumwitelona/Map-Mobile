@@ -7,14 +7,14 @@
 <!-- Pogrupuj zmiany tematycznie. Dla każdej grupy podaj nazwy klas/plików w backtickach i krótki opis. Usuń sekcje, które nie dotyczą tego PR. -->
 
 - **<Nazwa komponentu / funkcji> (`ClassName`, `IInterface`):**
-  - Co zostało dodane / zmienione / usunięte.
-  - Jak to działa lub co to daje (np. spójne mapowanie odpowiedzi, mniejsze sprzężenie).
+    - Co zostało dodane / zmienione / usunięte.
+    - Jak to działa lub co to daje (np. spójne mapowanie odpowiedzi, mniejsze sprzężenie).
 
 - **<Konfiguracja / DI> (`Program.cs`, `DependencyInjection`):**
-  - Co zostało zarejestrowane i z jakim czasem życia (singleton / scoped / transient).
+    - Co zostało zarejestrowane i z jakim czasem życia (singleton / scoped / transient).
 
 - **<Walidacja / obsługa błędów>:**
-  - Jak zmiana wpływa na format odpowiedzi lub kody błędów.
+    - Jak zmiana wpływa na format odpowiedzi lub kody błędów.
 
 ## Breaking Changes
 
@@ -23,3 +23,4 @@
 None
 
 ## Acceptance Criteria / Testing
+<!-- Trzeba skopioować checklistę z pr --> 

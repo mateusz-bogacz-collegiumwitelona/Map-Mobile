@@ -22,7 +22,6 @@ import com.example.map.testing.FakeUserProfileRepository
 import com.example.map.ui.navigation.AppNavigation
 import com.example.map.ui.viewmodels.AuthViewModel
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test

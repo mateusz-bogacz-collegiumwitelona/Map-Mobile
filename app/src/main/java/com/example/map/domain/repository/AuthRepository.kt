@@ -21,7 +21,7 @@ interface AuthRepository {
         isPublic: Boolean
     ): RegistrationResult
 
-    suspend fun confirmEmail(email: String, code: String) : EmailVerificationResult
-    suspend fun resendVerificationCode(email: String) : EmailVerificationResult
+    suspend fun confirmEmail(email: String, code: String): EmailVerificationResult
+    suspend fun resendVerificationCode(email: String): EmailVerificationResult
 }
 

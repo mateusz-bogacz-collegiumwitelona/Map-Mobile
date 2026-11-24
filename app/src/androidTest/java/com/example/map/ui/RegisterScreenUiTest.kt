@@ -19,8 +19,8 @@ import com.example.map.domain.model.RegistrationResult
 import com.example.map.domain.session.AuthSession
 import com.example.map.testing.FakeAuthRepository
 import com.example.map.testing.FakeTokenStorage
-import com.example.map.ui.auth.RegisterScreen
-import com.example.map.ui.auth.RegisterViewModel
+import com.example.map.ui.screens.RegisterScreen
+import com.example.map.ui.viewmodels.RegisterViewModel
 import kotlinx.coroutines.CompletableDeferred
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -225,9 +225,12 @@ class RegisterScreenUiTest {
 
     private fun fillValidForm(email: String = "jan@example.com") {
         composeRule.onNodeWithTag("register_first_name").performScrollTo().performTextInput("Jan")
-        composeRule.onNodeWithTag("register_last_name").performScrollTo().performTextInput("Kowalski")
+        composeRule.onNodeWithTag("register_last_name").performScrollTo()
+            .performTextInput("Kowalski")
         composeRule.onNodeWithTag("register_email").performScrollTo().performTextInput(email)
-        composeRule.onNodeWithTag("register_password").performScrollTo().performTextInput("Password1!")
-        composeRule.onNodeWithTag("register_confirm_password").performScrollTo().performTextInput("Password1!")
+        composeRule.onNodeWithTag("register_password").performScrollTo()
+            .performTextInput("Password1!")
+        composeRule.onNodeWithTag("register_confirm_password").performScrollTo()
+            .performTextInput("Password1!")
     }
 }

@@ -13,18 +13,18 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.map.domain.model.UserProfile
-import com.example.map.ui.auth.ConfirmEmailScreen
-import com.example.map.ui.auth.RegisterScreen
-import com.example.map.ui.auth.RegisterViewModel
 import com.example.map.ui.screens.ChangeEmailScreen
+import com.example.map.ui.screens.ConfirmEmailScreen
 import com.example.map.ui.screens.HomeScreen
 import com.example.map.ui.screens.LoginScreen
 import com.example.map.ui.screens.ProfilePrivacySettingsScreen
+import com.example.map.ui.screens.RegisterScreen
 import com.example.map.ui.screens.SettingsScreen
 import com.example.map.ui.viewmodels.AuthViewModel
 import com.example.map.ui.viewmodels.ChangeEmailViewModel
 import com.example.map.ui.viewmodels.ConfirmEmailViewModel
 import com.example.map.ui.viewmodels.ProfilePrivacySettingsViewModel
+import com.example.map.ui.viewmodels.RegisterViewModel
 import com.example.map.ui.viewmodels.SettingsViewModel
 import kotlinx.coroutines.delay
 
@@ -47,7 +47,7 @@ fun AppNavigation(
     },
     registerViewModelFactory: @Composable () -> RegisterViewModel = { hiltViewModel() },
     confirmEmailViewModelFactory: @Composable () -> ConfirmEmailViewModel = { hiltViewModel() }
-    ) {
+) {
     val uiState by viewModel.uiState.collectAsState()
     val navController = rememberNavController()
 
@@ -78,6 +78,15 @@ fun AppNavigation(
                 .padding(innerPadding)
         ) {
             composable(LOGIN_ROUTE) {
+                LaunchedEffect(uiState.requiresEmailVerification) {
+                    if (uiState.requiresEmailVerification) {
+                        viewModel.consumeEmailVerificationNavigation()
+                        navController.navigate(CONFIRM_EMAIL_ROUTE) {
+                            launchSingleTop = true
+                        }
+                    }
+                }
+
                 LoginScreen(
                     state = uiState,
                     onLoginClick = viewModel::login,

@@ -1,13 +1,14 @@
 package com.example.map.ui.auth
 
-import com.example.map.domain.model.AuthenticatedAccount
 import com.example.map.domain.model.AuthTokens
+import com.example.map.domain.model.AuthenticatedAccount
 import com.example.map.domain.model.EmailVerificationResult
 import com.example.map.domain.model.RegistrationError
 import com.example.map.domain.model.RegistrationResult
 import com.example.map.domain.repository.AuthRepository
 import com.example.map.domain.repository.TokenStorage
 import com.example.map.domain.session.AuthSession
+import com.example.map.ui.viewmodels.RegisterViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -119,6 +120,7 @@ class RegisterViewModelTest {
             access = tokens.accessToken
             refresh = tokens.refreshToken
         }
+
         override fun getAccessToken(): String? = access
         override fun getRefreshToken(): String? = refresh
         override fun clearTokens() {

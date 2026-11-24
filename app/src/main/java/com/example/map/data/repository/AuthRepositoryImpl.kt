@@ -159,10 +159,7 @@ class AuthRepositoryImpl @Inject constructor(
                 )
             },
             onNetworkError = {
-                EmailVerificationResult.Failure(
-                    error = EmailVerificationError.NETWORK,
-                    message = "Brak połączenia z serwerem."
-                )
+                EmailVerificationResult.Failure(error = EmailVerificationError.NETWORK)
             },
             onUnknownError = { msg ->
                 EmailVerificationResult.Failure(
@@ -192,10 +189,7 @@ class AuthRepositoryImpl @Inject constructor(
                 )
             },
             onNetworkError = {
-                EmailVerificationResult.Failure(
-                    error = EmailVerificationError.NETWORK,
-                    message = "Brak połączenia z serwerem."
-                )
+                EmailVerificationResult.Failure(error = EmailVerificationError.NETWORK)
             },
             onUnknownError = { msg ->
                 EmailVerificationResult.Failure(
@@ -204,6 +198,7 @@ class AuthRepositoryImpl @Inject constructor(
                 )
             }
         )
+
 
     private fun mapEmailVerificationError(
         statusCode: Int,

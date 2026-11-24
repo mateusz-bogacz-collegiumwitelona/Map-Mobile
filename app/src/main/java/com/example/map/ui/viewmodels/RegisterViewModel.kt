@@ -1,4 +1,4 @@
-package com.example.map.ui.auth
+package com.example.map.ui.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -10,12 +10,12 @@ import com.example.map.domain.validation.PasswordError
 import com.example.map.domain.validation.ProfileNameError
 import com.example.map.domain.validation.RegistrationValidator
 import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 data class RegisterUiState(
     val firstName: String = "",
@@ -57,7 +57,12 @@ class RegisterViewModel @Inject constructor(
     }
 
     fun onPasswordChange(value: String) = _uiState.update {
-        it.copy(password = value, passwordError = null, confirmPasswordError = null, errorMessage = null)
+        it.copy(
+            password = value,
+            passwordError = null,
+            confirmPasswordError = null,
+            errorMessage = null
+        )
     }
 
     fun onConfirmPasswordChange(value: String) = _uiState.update {
@@ -122,7 +127,7 @@ class RegisterViewModel @Inject constructor(
                     _uiState.update {
                         it.copy(
                             isLoading = false,
-                            errorMessage = mapApiErrorToMessage(result.error, result.message)
+                            errorMessage = mapApiErrorToMessage(result.error)
                         )
                     }
                 }
@@ -139,7 +144,7 @@ class RegisterViewModel @Inject constructor(
     private fun PasswordError.toMessage(): String = when (this) {
         PasswordError.BLANK -> "Hasło jest wymagane."
         PasswordError.TOO_SHORT -> "Hasło jest za krótkie."
-        PasswordError.WEAK -> "Hasło musi zawierać wielką i małą literę, cyfrę oraz znak specjalny."
+        PasswordError.WEAK -> "Hasło musi zawierać wielką literę (A-Z), cyfrę oraz znak specjalny."
         PasswordError.MISMATCH -> "Hasła nie są takie same."
     }
 
@@ -147,15 +152,15 @@ class RegisterViewModel @Inject constructor(
         BioError.TOO_LONG -> "Opis (bio) jest za długi."
     }
 
-    private fun mapApiErrorToMessage(error: RegistrationError, fallback: String?): String =
+    private fun mapApiErrorToMessage(error: RegistrationError): String =
         when (error) {
             RegistrationError.FIRST_NAME_INVALID -> "Nieprawidłowe imię."
             RegistrationError.LAST_NAME_INVALID -> "Nieprawidłowe nazwisko."
             RegistrationError.BIO_INVALID -> "Nieprawidłowy opis (bio)."
             RegistrationError.EMAIL_INVALID -> "Nieprawidłowy adres e-mail."
-            RegistrationError.VALIDATION_ERROR -> fallback ?: "Sprawdź poprawność danych."
+            RegistrationError.VALIDATION_ERROR -> "Sprawdź poprawność danych."
             RegistrationError.RATE_LIMITED -> "Zbyt wiele prób. Spróbuj ponownie za chwilę."
             RegistrationError.NETWORK -> "Brak połączenia z internetem."
-            RegistrationError.UNKNOWN -> fallback ?: "Nie udało się utworzyć konta."
+            RegistrationError.UNKNOWN -> "Nie udało się utworzyć konta."
         }
 }

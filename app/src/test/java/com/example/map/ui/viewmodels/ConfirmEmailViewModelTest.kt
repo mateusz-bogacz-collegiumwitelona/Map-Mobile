@@ -98,7 +98,7 @@ class ConfirmEmailViewModelTest {
     fun confirmEmailFailureShowsErrorAndKeepsPendingEmail() = runTest(dispatcher) {
         repository.confirmResult = EmailVerificationResult.Failure(
             error = EmailVerificationError.INVALID_CODE,
-            message = "Kod wygasł."
+            message = "The verification code is invalid."
         )
         val viewModel = ConfirmEmailViewModel(session)
         viewModel.onCodeChange("111111")
@@ -107,7 +107,10 @@ class ConfirmEmailViewModelTest {
         advanceUntilIdle()
 
         assertFalse(viewModel.uiState.value.isVerified)
-        assertEquals("Kod wygasł.", viewModel.uiState.value.errorMessage)
+        assertEquals(
+            "Nieprawidłowy lub wygasły kod weryfikacyjny.",
+            viewModel.uiState.value.errorMessage
+        )
         assertEquals("jan@example.com", session.pendingVerificationEmail.value)
     }
 

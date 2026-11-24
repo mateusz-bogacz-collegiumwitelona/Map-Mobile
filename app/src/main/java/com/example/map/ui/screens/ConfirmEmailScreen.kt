@@ -1,4 +1,4 @@
-package com.example.map.ui.auth
+package com.example.map.ui.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement

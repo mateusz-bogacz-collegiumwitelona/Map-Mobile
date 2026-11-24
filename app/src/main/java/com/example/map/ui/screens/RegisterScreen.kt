@@ -1,4 +1,4 @@
-package com.example.map.ui.auth
+package com.example.map.ui.screens
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -54,6 +54,7 @@ import com.example.map.ui.theme.BackgroundDark
 import com.example.map.ui.theme.ButtonLight
 import com.example.map.ui.theme.SurfaceGray
 import com.example.map.ui.theme.TextGray
+import com.example.map.ui.viewmodels.RegisterViewModel
 
 @Composable
 fun RegisterScreen(

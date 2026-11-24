@@ -103,8 +103,7 @@ class AuthSession(
     suspend fun confirmEmail(code: String): EmailVerificationResult {
         val targetEmail = _pendingVerificationEmail.value
             ?: return EmailVerificationResult.Failure(
-                error = EmailVerificationError.VALIDATION,
-                message = "Brak adresu e-mail do potwierdzenia."
+                error = EmailVerificationError.VALIDATION
             )
 
         val result = authRepository.confirmEmail(
@@ -121,7 +120,6 @@ class AuthSession(
         val targetEmail = _pendingVerificationEmail.value
             ?: return EmailVerificationResult.Failure(
                 error = EmailVerificationError.VALIDATION,
-                message = "Brak adresu e-mail do ponownej wysyłki kodu."
             )
 
         return authRepository.resendVerificationCode(email = targetEmail)

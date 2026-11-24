@@ -8,18 +8,17 @@ enum class PasswordError {
 }
 
 object PasswordValidator {
-    const val MIN_LENGHT = 8
+    const val MIN_LENGTH = 8
 
     fun validatePassword(password: String): PasswordError? {
         if (password.isEmpty()) return PasswordError.BLANK
-        if (password.length < MIN_LENGHT) return PasswordError.TOO_SHORT
+        if (password.length < MIN_LENGTH) return PasswordError.TOO_SHORT
 
-        val hasUpper = password.any { it.isUpperCase() }
-        val hasLower = password.any { it.isLowerCase() }
-        val hasDigit = password.any { it.isDigit() }
+        val hasUpper = password.any { it in 'A'..'Z' }
+        val hasDigit = password.any { it in '0'..'9' }
         val hasSpecial = password.any { !it.isLetterOrDigit() }
 
-        return if (hasUpper && hasLower && hasDigit && hasSpecial) {
+        return if (hasUpper && hasDigit && hasSpecial) {
             null
         } else {
             PasswordError.WEAK

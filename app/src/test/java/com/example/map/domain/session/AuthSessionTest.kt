@@ -24,7 +24,11 @@ class AuthSessionTest {
         repository: FakeAuthRepository = FakeAuthRepository(),
         storage: FakeTokenStorage = FakeTokenStorage()
     ): Triple<AuthSession, FakeAuthRepository, FakeTokenStorage> =
-        Triple(AuthSession(tokenStorage = storage, authRepository = repository), repository, storage)
+        Triple(
+            AuthSession(tokenStorage = storage, authRepository = repository),
+            repository,
+            storage
+        )
 
     @Test
     fun loginWithUserRolePersistsTokens() = runTest {
@@ -190,8 +194,7 @@ class AuthSessionTest {
 
         assertEquals(
             EmailVerificationResult.Failure(
-                error = EmailVerificationError.VALIDATION,
-                message = "Brak adresu e-mail do potwierdzenia."
+                error = EmailVerificationError.VALIDATION
             ),
             result
         )
@@ -238,8 +241,7 @@ class AuthSessionTest {
 
         assertEquals(
             EmailVerificationResult.Failure(
-                error = EmailVerificationError.VALIDATION,
-                message = "Brak adresu e-mail do ponownej wysyłki kodu."
+                error = EmailVerificationError.VALIDATION
             ),
             result
         )
