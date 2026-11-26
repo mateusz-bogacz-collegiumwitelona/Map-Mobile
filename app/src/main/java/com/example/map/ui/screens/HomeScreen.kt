@@ -44,8 +44,6 @@ import com.example.map.ui.viewmodels.HomeUiState
 
 @Composable
 fun HomeScreen(
-    profileName: String,
-    profileInitials: String,
     onProfileClick: () -> Unit,
     onLogoutClick: () -> Unit,
     uiState: HomeUiState = HomeUiState(),
@@ -89,7 +87,6 @@ fun HomeScreen(
                     color = ButtonLight,
                     fontSize = 24.sp
                 )
-                Text(text = profileInitials, color = Color.White, fontSize = 24.sp)
             }
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -120,7 +117,6 @@ fun HomeScreen(
                     Text("Spróbuj ponownie")
                 }
             }
-            Text(text = profileName, color = Color.White, fontSize = 18.sp)
 
             Spacer(modifier = Modifier.height(24.dp))
 

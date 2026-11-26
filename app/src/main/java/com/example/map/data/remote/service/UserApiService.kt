@@ -11,15 +11,9 @@ import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.PATCH
 import retrofit2.http.POST
-import com.example.map.data.remote.dto.ApiEnvelopeDto
-import com.example.map.data.remote.dto.UserProfileDto
-import retrofit2.http.GET
 import retrofit2.http.Path
 
 interface UserApiService {
-
-    @GET("api/user")
-    suspend fun getCurrentUserProfile(): Response<ApiEnvelopeDto<UserProfileDto>>
 
     @GET("api/user")
     suspend fun getProfile(): Response<ApiEnvelope<UserProfileDataResponse>>

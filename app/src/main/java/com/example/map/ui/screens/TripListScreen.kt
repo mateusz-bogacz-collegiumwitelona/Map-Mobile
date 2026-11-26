@@ -62,6 +62,7 @@ fun TripListScreen(
     onBackClick: () -> Unit,
     onSettingsClick: () -> Unit,
     onLogoutClick: () -> Unit,
+    onProfileClick: () -> Unit = {},
     onRetryClick: () -> Unit,
     onEditTrip: (String) -> Unit,
     onDeleteTrip: (String) -> Unit,
@@ -83,6 +84,7 @@ fun TripListScreen(
     ) {
         Header(
             title = "Map",
+            onProfileClick = onProfileClick,
             onSettingsClick = onSettingsClick,
             onLogoutClick = onLogoutClick
         )

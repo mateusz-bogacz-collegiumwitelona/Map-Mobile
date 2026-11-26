@@ -8,21 +8,24 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.example.map.domain.model.AuthTokens
-import com.example.map.domain.usecase.AccountSession
-import com.example.map.domain.usecase.AuthSession
+import com.example.map.domain.session.AccountSession as SessionAccountSession
+import com.example.map.domain.session.AuthSession
+import com.example.map.domain.usecase.AccountSession as HomeAccountSession
+import com.example.map.domain.usecase.TripSession
 import com.example.map.testing.FakeAccountRepository
 import com.example.map.testing.FakeAuthRepository
 import com.example.map.testing.FakeProfileStorage
+import com.example.map.testing.FakeTokenStorage
+import com.example.map.testing.FakeUserProfileRepository
+import com.example.map.testing.NoOpTripRepository
 import com.example.map.ui.navigation.AppNavigation
 import com.example.map.ui.viewmodels.AuthViewModel
 import com.example.map.ui.viewmodels.HomeViewModel
+import com.example.map.ui.viewmodels.TripListViewModel
+import com.example.map.ui.viewmodels.TripManagerViewModel
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
-import com.example.map.domain.usecase.TripSession
-import com.example.map.testing.NoOpTripRepository
-import com.example.map.ui.viewmodels.TripManagerViewModel
-import com.example.map.ui.viewmodels.TripListViewModel
 
 @RunWith(AndroidJUnit4::class)
 class HomeNavigationUiTest {
@@ -32,23 +35,34 @@ class HomeNavigationUiTest {
 
     @Test
     fun homeButtonsOpenTripListAndTripManagerScreens() {
-        val accountSession = AccountSession(
-            FakeAccountRepository(),
-            FakeProfileStorage()
+        val accountRepository = FakeAccountRepository()
+        val profileStorage = FakeProfileStorage()
+
+        val accountSession = SessionAccountSession(
+            accountRepository = accountRepository,
+            profileRepository = FakeUserProfileRepository(),
+            profileStorage = profileStorage
         )
+
+        val homeViewModel = HomeViewModel(
+            HomeAccountSession(
+                accountRepository = accountRepository,
+                profileStorage = profileStorage
+            )
+        )
+
         val authViewModel = AuthViewModel(
-            AuthSession(
-                FakeTokenStorage(
-                    AuthTokens(
+            authSession = AuthSession(
+                tokenStorage = FakeTokenStorage(
+                    initialTokens = AuthTokens(
                         accessToken = "access-test",
                         refreshToken = "refresh-test"
                     )
                 ),
-                FakeAuthRepository()
+                authRepository = FakeAuthRepository()
             ),
-            accountSession
+            accountSession = accountSession
         )
-        val homeViewModel = HomeViewModel(accountSession)
 
         composeRule.setContent {
             AppNavigation(

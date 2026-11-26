@@ -2,7 +2,8 @@ package com.example.map.di
 
 import com.example.map.BuildConfig
 import com.example.map.data.remote.AuthInterceptor
-import com.example.map.data.remote.service.AuthApi
+import com.example.map.data.remote.service.AuthApiService
+import com.example.map.data.remote.service.TripApi
 import com.example.map.data.remote.service.UserApiService
 import dagger.Module
 import dagger.Provides
@@ -16,9 +17,6 @@ import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.kotlinx.serialization.asConverterFactory
-import java.util.concurrent.TimeUnit
-import javax.inject.Singleton
-import com.example.map.data.remote.service.TripApi
 
 @Module
 @InstallIn(SingletonComponent::class)

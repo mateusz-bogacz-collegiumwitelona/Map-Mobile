@@ -62,17 +62,6 @@ fun Header(
                 color = Color.White,
                 fontSize = 22.sp
             )
-
-            if (title != "Map") {
-                Spacer(modifier = Modifier.width(12.dp))
-
-                Text(
-                    text = title,
-                    color = TextGray,
-                    fontSize = 16.sp,
-                    maxLines = 1
-                )
-            }
         }
 
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -86,11 +75,13 @@ fun Header(
                 }
             }
 
-            Text(
-                text = title,
-                color = Color.White,
-                fontSize = 20.sp
-            )
+            if (title != "Map") {
+                Text(
+                    text = title,
+                    color = Color.White,
+                    fontSize = 20.sp
+                )
+            }
         }
 
         Row(verticalAlignment = Alignment.CenterVertically) {

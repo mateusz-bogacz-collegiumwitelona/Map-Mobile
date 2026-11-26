@@ -1,13 +1,10 @@
 package com.example.map.data.remote.service
 
-import com.example.map.data.remote.dto.ApiEnvelopeDto
-import com.example.map.data.remote.dto.ApiResultDto
 import com.example.map.data.remote.dto.PlaceSearchDto
 import com.example.map.data.remote.dto.TripDetailsDto
 import com.example.map.data.remote.dto.TripPageDto
-import com.example.map.data.remote.dto.TripPointRequestDto
-import com.example.map.data.remote.dto.TripSegmentRequestDto
 import com.example.map.data.remote.dto.UpsertTripRequestDto
+import com.example.map.data.remote.dto.common.ApiEnvelope
 import kotlinx.serialization.json.JsonObject
 import retrofit2.Response
 import retrofit2.http.Body
@@ -22,7 +19,7 @@ interface TripApi {
     @GET("api/place/search")
     suspend fun searchPlaces(
         @Query("query") query: String
-    ): Response<ApiEnvelopeDto<List<PlaceSearchDto>>>
+    ): Response<ApiEnvelope<List<PlaceSearchDto>>>
 
     @GET("api/trip")
     suspend fun getTrips(
@@ -31,26 +28,26 @@ interface TripApi {
         @Query("sortBy") sortBy: String? = "startDate",
         @Query("sortDescending") sortDescending: Boolean = true,
         @Query("searchTerm") searchTerm: String? = null
-    ): Response<ApiEnvelopeDto<TripPageDto>>
+    ): Response<ApiEnvelope<TripPageDto>>
 
     @GET("api/trip/details/{tripId}")
     suspend fun getTripDetails(
         @Path("tripId") tripId: String
-    ): Response<ApiEnvelopeDto<TripDetailsDto>>
+    ): Response<ApiEnvelope<TripDetailsDto>>
 
     @POST("api/trip/create")
     suspend fun createTrip(
         @Body request: UpsertTripRequestDto
-    ): Response<ApiEnvelopeDto<JsonObject>>
+    ): Response<ApiEnvelope<JsonObject>>
 
     @PUT("api/trip/update/{tripId}")
     suspend fun updateTrip(
         @Path("tripId") tripId: String,
         @Body request: UpsertTripRequestDto
-    ): Response<ApiEnvelopeDto<JsonObject>>
+    ): Response<ApiEnvelope<JsonObject>>
 
     @DELETE("api/trip/delete/{tripId}")
     suspend fun deleteTrip(
         @Path("tripId") tripId: String
-    ): Response<ApiResultDto>
+    ): Response<ApiEnvelope<Unit>>
 }

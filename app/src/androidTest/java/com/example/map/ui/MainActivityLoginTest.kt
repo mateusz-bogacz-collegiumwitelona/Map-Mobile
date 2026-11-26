@@ -12,8 +12,9 @@ import com.example.map.domain.model.AuthFailure
 import com.example.map.domain.model.AuthTokens
 import com.example.map.domain.model.AuthenticatedAccount
 import com.example.map.domain.model.UserProfile
-import com.example.map.domain.session.AccountSession
+import com.example.map.domain.session.AccountSession as SessionAccountSession
 import com.example.map.domain.session.AuthSession
+import com.example.map.domain.usecase.AccountSession as HomeAccountSession
 import com.example.map.testing.FakeAccountRepository
 import com.example.map.testing.FakeAuthRepository
 import com.example.map.testing.FakeProfileStorage
@@ -21,17 +22,12 @@ import com.example.map.testing.FakeTokenStorage
 import com.example.map.testing.FakeUserProfileRepository
 import com.example.map.ui.navigation.AppNavigation
 import com.example.map.ui.viewmodels.AuthViewModel
+import com.example.map.ui.viewmodels.HomeViewModel
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
-import androidx.compose.ui.test.assertIsDisplayed
-import org.junit.Assert.assertFalse
-import com.example.map.domain.model.AuthException
-import com.example.map.domain.model.AuthFailure
-import org.junit.Assert.assertTrue
-import com.example.map.ui.viewmodels.HomeViewModel
 
 @RunWith(AndroidJUnit4::class)
 class MainActivityLoginTest {
@@ -43,8 +39,12 @@ class MainActivityLoginTest {
     fun successfulUserLoginStoresTokensHydratesProfileAndOpensHome() {
         val tokenStorage = FakeTokenStorage()
         val profileStorage = FakeProfileStorage()
+        val accountRepository = FakeAccountRepository()
         val profileRepository = FakeUserProfileRepository().apply {
-            remoteProfile = UserProfile(firstName = "Jan", lastName = "Kowalski")
+            remoteProfile = UserProfile(
+                firstName = "Jan",
+                lastName = "Kowalski"
+            )
         }
 
         val authRepository = FakeAuthRepository().apply {
@@ -55,32 +55,22 @@ class MainActivityLoginTest {
                 ),
                 roles = listOf("User")
             )
-
-            override suspend fun refresh(
-                refreshToken: String
-            ): AuthenticatedAccount {
-                error("Refresh nie jest używany w tym teście.")
-            }
-
-            override suspend fun logout(
-                accessToken: String,
-                refreshToken: String
-            ) = Unit
         }
 
-        val accountSession = AccountSession(
-            FakeAccountRepository(),
-            profileStorage
+        val accountSession = SessionAccountSession(
+            accountRepository = accountRepository,
+            profileRepository = profileRepository,
+            profileStorage = profileStorage
         )
-        val homeViewModel = HomeViewModel(accountSession)
-        val viewModel = AuthViewModel(
-            AuthSession(tokenStorage, authRepository),
-            AccountSession(
-                accountRepository = FakeAccountRepository(),
-                profileRepository = profileRepository,
+        val homeViewModel = HomeViewModel(
+            HomeAccountSession(
+                accountRepository = accountRepository,
                 profileStorage = profileStorage
             )
-            accountSession
+        )
+        val viewModel = AuthViewModel(
+            authSession = AuthSession(tokenStorage, authRepository),
+            accountSession = accountSession
         )
 
         composeRule.setContent {
@@ -117,10 +107,9 @@ class MainActivityLoginTest {
     @Test
     fun invalidEmailShowsValidationErrorWithoutCallingBackend() {
         val repository = FakeAuthRepository()
-
         val viewModel = AuthViewModel(
-            AuthSession(FakeTokenStorage(), repository),
-            testAccountSession(FakeProfileStorage())
+            authSession = AuthSession(FakeTokenStorage(), repository),
+            accountSession = testAccountSession(FakeProfileStorage())
         )
 
         composeRule.setContent {
@@ -147,10 +136,9 @@ class MainActivityLoginTest {
         val repository = FakeAuthRepository().apply {
             loginError = AuthException(AuthFailure.NETWORK_ERROR)
         }
-
         val viewModel = AuthViewModel(
-            AuthSession(FakeTokenStorage(), repository),
-            testAccountSession(FakeProfileStorage())
+            authSession = AuthSession(FakeTokenStorage(), repository),
+            accountSession = testAccountSession(FakeProfileStorage())
         )
 
         composeRule.setContent {
@@ -175,9 +163,10 @@ class MainActivityLoginTest {
 
     private fun testAccountSession(
         profileStorage: FakeProfileStorage
-    ): AccountSession = AccountSession(
-        accountRepository = FakeAccountRepository(),
-        profileRepository = FakeUserProfileRepository(),
-        profileStorage = profileStorage
-    )
+    ): SessionAccountSession =
+        SessionAccountSession(
+            accountRepository = FakeAccountRepository(),
+            profileRepository = FakeUserProfileRepository(),
+            profileStorage = profileStorage
+        )
 }

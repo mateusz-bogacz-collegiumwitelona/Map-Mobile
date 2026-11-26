@@ -35,4 +35,15 @@ object SessionModule {
         profileRepository = profileRepository,
         profileStorage = profileStorage
     )
+
+    @Provides
+    @Singleton
+    fun provideHomeAccountSession(
+        accountRepository: AccountRepository,
+        profileStorage: ProfileStorage
+    ): com.example.map.domain.usecase.AccountSession =
+        com.example.map.domain.usecase.AccountSession(
+            accountRepository = accountRepository,
+            profileStorage = profileStorage
+        )
 }

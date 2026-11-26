@@ -19,6 +19,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import com.example.map.ui.viewmodels.HomeUiState
 
 @RunWith(AndroidJUnit4::class)
 class AuthenticationUiTest {
@@ -121,35 +122,38 @@ class AuthenticationUiTest {
 
         composeRule.setContent {
             HomeScreen(
-                profileName = "Jan Kowalski",
-                profileInitials = "JK",
                 onProfileClick = {},
-                onLogoutClick = { logoutCalled = true }
+                onLogoutClick = { logoutCalled = true },
+                uiState = HomeUiState(
+                    firstName = "Jan",
+                    lastName = "Kowalski",
+                    isLoading = false
+                )
             )
+
+            composeRule.onNodeWithContentDescription("Wyloguj").assertIsDisplayed()
+            composeRule.onNodeWithContentDescription("Wyloguj").performClick()
+
+            composeRule.runOnIdle {
+                assertTrue(logoutCalled)
+            }
         }
 
-        composeRule.onNodeWithContentDescription("Wyloguj").assertIsDisplayed()
-        composeRule.onNodeWithContentDescription("Wyloguj").performClick()
+        @Test
+        fun loadingStateDisablesLoginInputs() {
+            composeRule.setContent {
+                LoginScreen(
+                    state = AuthUiState(
+                        isAuthenticated = false,
+                        isLoading = true
+                    ),
+                    onLoginClick = { _, _ -> },
+                    onInputsChanged = {}
+                )
+            }
 
-        composeRule.runOnIdle {
-            assertTrue(logoutCalled)
+            composeRule.onNodeWithText("E-mail").assertIsNotEnabled()
+            composeRule.onNodeWithText("Hasło").assertIsNotEnabled()
         }
-    }
-
-    @Test
-    fun loadingStateDisablesLoginInputs() {
-        composeRule.setContent {
-            LoginScreen(
-                state = AuthUiState(
-                    isAuthenticated = false,
-                    isLoading = true
-                ),
-                onLoginClick = { _, _ -> },
-                onInputsChanged = {}
-            )
-        }
-
-        composeRule.onNodeWithText("E-mail").assertIsNotEnabled()
-        composeRule.onNodeWithText("Hasło").assertIsNotEnabled()
     }
 }

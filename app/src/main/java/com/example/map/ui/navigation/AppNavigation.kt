@@ -58,8 +58,7 @@ fun AppNavigation(
     changeEmailViewModelFactory: @Composable () -> ChangeEmailViewModel = { hiltViewModel() },
     tripListViewModelFactory: @Composable () -> TripListViewModel = { hiltViewModel() },
     tripManagerViewModelFactory: @Composable () -> TripManagerViewModel = { hiltViewModel() },
-    tripDetailsViewModelFactory: @Composable () -> TripDetailsViewModel = { hiltViewModel() }
-    changeEmailViewModelFactory: @Composable () -> ChangeEmailViewModel = { hiltViewModel() },
+    tripDetailsViewModelFactory: @Composable () -> TripDetailsViewModel = { hiltViewModel() },
     profileViewModelFactory: @Composable () -> ProfilePrivacySettingsViewModel = {
         hiltViewModel()
     },
@@ -164,19 +163,15 @@ fun AppNavigation(
 
                 HomeScreen(
                     uiState = homeState,
+                    onProfileClick = {
+                        navController.navigate(PROFILE_PRIVACY_ROUTE)
+                    },
                     onLogoutClick = viewModel::logout,
                     onSettingsClick = {
                         navController.navigate(SETTINGS_ROUTE)
                     },
                     onMyTripsClick = {
                         navController.navigate(TRIP_LIST_ROUTE)
-                    profileName = uiState.profile.displayName(),
-                    profileInitials = uiState.profile.displayInitials(),
-                    onProfileClick = {
-                        navController.navigate(PROFILE_PRIVACY_ROUTE)
-                    },
-                    onLogoutClick = {
-                        viewModel.logout()
                     },
                     onNewTripClick = {
                         navController.navigate(TRIP_MANAGER_ROUTE)
@@ -206,6 +201,9 @@ fun AppNavigation(
                     },
                     onLogoutClick = viewModel::logout,
                     onRetryClick = tripListViewModel::loadTrips,
+                    onProfileClick = {
+                        navController.navigate(PROFILE_PRIVACY_ROUTE)
+                    },
                     onEditTrip = { tripId ->
                         navController.navigate(
                             "$TRIP_MANAGER_ROUTE?tripId=$tripId"
@@ -284,6 +282,9 @@ fun AppNavigation(
                     state = tripManagerState,
                     onBackClick = { navController.popBackStack() },
                     onTitleChange = tripManagerViewModel::onTitleChange,
+                    onProfileClick = {
+                        navController.navigate(PROFILE_PRIVACY_ROUTE)
+                    },
                     onDescriptionChange = tripManagerViewModel::onDescriptionChange,
                     onStartDateSelected =
                         tripManagerViewModel::onStartDateSelected,

@@ -1,16 +1,18 @@
 package com.example.map.data.repository
 
-import com.example.map.data.remote.dto.ApiEnvelopeDto
 import com.example.map.data.remote.dto.PlaceSearchDto
 import com.example.map.data.remote.dto.TripDetailsDto
 import com.example.map.data.remote.dto.TripPointRequestDto
+import com.example.map.data.remote.dto.TripPointResponseDto
 import com.example.map.data.remote.dto.TripSegmentRequestDto
 import com.example.map.data.remote.dto.TripSummaryDto
 import com.example.map.data.remote.dto.UpsertTripRequestDto
+import com.example.map.data.remote.dto.common.ApiEnvelope
 import com.example.map.data.remote.service.TripApi
 import com.example.map.domain.model.PlaceOption
 import com.example.map.domain.model.TripDetails
 import com.example.map.domain.model.TripDraft
+import com.example.map.domain.model.TripSegmentDetails
 import com.example.map.domain.model.TripSegmentDraft
 import com.example.map.domain.model.TripSummary
 import com.example.map.domain.model.TripTransportType
@@ -23,8 +25,6 @@ import java.util.TimeZone
 import javax.inject.Inject
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
-import com.example.map.domain.model.TripSegmentDetails
-import com.example.map.data.remote.dto.TripPointResponseDto
 
 class RemoteTripRepository @Inject constructor(
     private val tripApi: TripApi,
@@ -86,12 +86,18 @@ class RemoteTripRepository @Inject constructor(
 
     override suspend fun createTrip(trip: TripDraft) {
         val response = tripApi.createTrip(trip.toRequest())
-        ensureUpsertSucceeded(response.body(), response.errorBody()?.string())
+        ensureUpsertSucceeded(
+            body = response.body(),
+            rawErrorBody = response.errorBody()?.string()
+        )
     }
 
     override suspend fun updateTrip(tripId: String, trip: TripDraft) {
         val response = tripApi.updateTrip(tripId, trip.toRequest())
-        ensureUpsertSucceeded(response.body(), response.errorBody()?.string())
+        ensureUpsertSucceeded(
+            body = response.body(),
+            rawErrorBody = response.errorBody()?.string()
+        )
     }
 
     override suspend fun deleteTrip(tripId: String) {
@@ -122,7 +128,7 @@ class RemoteTripRepository @Inject constructor(
     )
 
     private fun ensureUpsertSucceeded(
-        body: ApiEnvelopeDto<JsonObject>?,
+        body: ApiEnvelope<JsonObject>?,
         rawErrorBody: String?
     ) {
         if (body?.isSuccess != true) {
@@ -252,7 +258,7 @@ class RemoteTripRepository @Inject constructor(
         if (rawBody.isNullOrBlank()) return null
 
         return runCatching {
-            json.decodeFromString<ApiEnvelopeDto<JsonObject>>(rawBody).message
+            json.decodeFromString<ApiEnvelope<JsonObject>>(rawBody).message
         }.getOrNull()
     }
 }

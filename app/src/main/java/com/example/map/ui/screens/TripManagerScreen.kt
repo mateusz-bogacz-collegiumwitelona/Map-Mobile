@@ -88,6 +88,7 @@ fun TripManagerScreen(
     onBackClick: () -> Unit,
     onSettingsClick: () -> Unit = {},
     onLogoutClick: () -> Unit = {},
+    onProfileClick: () -> Unit = {},
     onTitleChange: (String) -> Unit = {},
     onDescriptionChange: (String) -> Unit = {},
     onStartDateSelected: (Long) -> Unit = {},
@@ -113,6 +114,7 @@ fun TripManagerScreen(
     ) {
         Header(
             title = "Map",
+            onProfileClick = onProfileClick,
             onSettingsClick = onSettingsClick,
             onLogoutClick = onLogoutClick
         )
