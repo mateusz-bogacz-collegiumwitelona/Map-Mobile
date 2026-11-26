@@ -10,13 +10,17 @@ import androidx.test.espresso.Espresso
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.example.map.domain.model.AuthenticatedAccount
 import com.example.map.domain.model.AuthTokens
-import com.example.map.domain.repository.AuthRepository
-import com.example.map.domain.usecase.AccountSession
-import com.example.map.domain.usecase.AuthSession
+import com.example.map.domain.model.UserProfile
+import com.example.map.domain.session.AccountSession
+import com.example.map.domain.session.AuthSession
 import com.example.map.testing.FakeAccountRepository
+import com.example.map.testing.FakeAuthRepository
 import com.example.map.testing.FakeProfileStorage
+import com.example.map.testing.FakeTokenStorage
+import com.example.map.testing.FakeUserProfileRepository
 import com.example.map.ui.navigation.AppNavigation
 import com.example.map.ui.viewmodels.AuthViewModel
+import com.example.map.ui.viewmodels.ProfilePrivacySettingsViewModel
 import com.example.map.ui.viewmodels.HomeViewModel
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
@@ -38,6 +42,10 @@ class MainActivityLogoutTest {
 
     private var remotelyLoggedOutAccessToken: String? = null
     private var remotelyLoggedOutRefreshToken: String? = null
+    private lateinit var profileStorage: FakeProfileStorage
+    private lateinit var authRepository: FakeAuthRepository
+    private lateinit var accountSession: AccountSession
+    private lateinit var authSession: AuthSession
 
     @Before
     fun setUp() {
@@ -50,15 +58,22 @@ class MainActivityLogoutTest {
                 refreshToken = "refresh-test-token"
             )
         )
+        profileStorage = FakeProfileStorage(
+            initialProfile = UserProfile(firstName = "Jan", lastName = "Kowalski"),
+            initialEmail = "user@example.com"
+        )
+        authRepository = FakeAuthRepository()
 
-        val authRepository = object : AuthRepository {
-            override suspend fun login(
-                email: String,
-                password: String
-            ): AuthenticatedAccount {
-                error("Login nie jest używany w tym teście.")
-            }
+        authSession = AuthSession(tokenStorage, authRepository)
+        accountSession = AccountSession(
+            accountRepository = FakeAccountRepository(),
+            profileRepository = FakeUserProfileRepository(),
+            profileStorage = profileStorage
+        )
 
+        val authViewModel = AuthViewModel(
+            authSession = authSession,
+            accountSession = accountSession
             override suspend fun refresh(
                 refreshToken: String
             ): AuthenticatedAccount {
@@ -83,26 +98,44 @@ class MainActivityLogoutTest {
             authSession = AuthSession(tokenStorage, authRepository),
             accountSession = accountSession
         )
+        val profileViewModel = ProfilePrivacySettingsViewModel(
+            accountSession = accountSession,
+            authSession = authSession
+        )
 
         composeRule.setContent {
             AppNavigation(
                 viewModel = authViewModel,
                 homeViewModelFactory = { homeViewModel }
             )
+            AppNavigation(
+                viewModel = authViewModel,
+                profileViewModelFactory = { profileViewModel }
+            )
         }
     }
 
     @Test
-    fun logoutRevokesBackendSessionClearsTokensAndResetsNavigation() {
+    fun homeShowsProfileLoadedFromSession() {
         composeRule.onNodeWithText("Jan Kowalski").assertIsDisplayed()
+    }
+
+    @Test
+    fun logoutRevokesBackendSessionClearsLocalProfileAndResetsNavigation() {
+        composeRule.onNodeWithText("Jan Kowalski").assertIsDisplayed()
+
         composeRule.onNodeWithContentDescription("Wyloguj").performClick()
         composeRule.onNodeWithText("Zaloguj się").assertIsDisplayed()
 
         composeRule.runOnIdle {
-            assertEquals("access-test-token", remotelyLoggedOutAccessToken)
-            assertEquals("refresh-test-token", remotelyLoggedOutRefreshToken)
+            assertEquals("access-test-token", authRepository.lastLoggedOutAccessToken)
+            assertEquals("refresh-test-token", authRepository.lastLoggedOutRefreshToken)
             assertNull(tokenStorage.getAccessToken())
             assertNull(tokenStorage.getRefreshToken())
+            assertNull(profileStorage.getEmail())
+            assertNull(profileStorage.getProfile())
+            assertEquals("", accountSession.email.value)
+            assertEquals(UserProfile(), accountSession.profile.value)
         }
 
         Espresso.pressBackUnconditionally()
@@ -116,5 +149,17 @@ class MainActivityLogoutTest {
         }
 
         assertTrue(!returnedToHome)
+    }
+
+    @Test
+    fun profileIconOpensProfilePrivacyScreenAndBackReturnsHome() {
+        composeRule.onNodeWithContentDescription("Profil i prywatność").performClick()
+
+        composeRule.onNodeWithText("Dane konta").assertIsDisplayed()
+        composeRule.onNodeWithText("user@example.com").assertIsDisplayed()
+
+        composeRule.onNodeWithContentDescription("Wróć").performClick()
+
+        composeRule.onNodeWithText("Moje podróże").assertIsDisplayed()
     }
 }

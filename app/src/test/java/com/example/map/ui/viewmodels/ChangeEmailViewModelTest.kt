@@ -2,9 +2,10 @@ package com.example.map.ui.viewmodels
 
 import com.example.map.domain.model.EmailChangeError
 import com.example.map.domain.model.EmailChangeResult
-import com.example.map.domain.usecase.AccountSession
+import com.example.map.domain.session.AccountSession
 import com.example.map.testing.FakeAccountRepository
 import com.example.map.testing.FakeProfileStorage
+import com.example.map.testing.FakeUserProfileRepository
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -37,7 +38,11 @@ class ChangeEmailViewModelTest {
         Dispatchers.setMain(dispatcher)
         repository = FakeAccountRepository()
         profileStorage = FakeProfileStorage("current@example.com")
-        accountSession = AccountSession(repository, profileStorage)
+        accountSession = AccountSession(
+            accountRepository = repository,
+            profileRepository = FakeUserProfileRepository(),
+            profileStorage = profileStorage
+        )
         viewModel = ChangeEmailViewModel(accountSession)
     }
 
@@ -234,11 +239,11 @@ class ChangeEmailViewModelTest {
         val cases = listOf(
             EmailChangeError.EMAIL_INVALID to "Podaj prawidłowy adres e-mail.",
             EmailChangeError.EMAIL_UNCHANGED to
-                "Nowy adres e-mail musi różnić się od obecnego.",
+                    "Nowy adres e-mail musi różnić się od obecnego.",
             EmailChangeError.ATTEMPTS_EXCEEDED to
-                "Przekroczono liczbę prób. Wróć i wyślij nowy kod.",
+                    "Przekroczono liczbę prób. Wróć i wyślij nowy kod.",
             EmailChangeError.RATE_LIMITED to
-                "Zbyt wiele żądań. Odczekaj chwilę i spróbuj ponownie.",
+                    "Zbyt wiele żądań. Odczekaj chwilę i spróbuj ponownie.",
             EmailChangeError.UNAUTHORIZED to "Sesja wygasła. Zaloguj się ponownie."
         )
 

@@ -1,6 +1,7 @@
 package com.example.map.data
 
 import android.content.Context
+import androidx.core.content.edit
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
 import com.example.map.domain.model.AuthTokens
@@ -27,10 +28,10 @@ class TokenManager @Inject constructor(
     }
 
     override fun saveTokens(tokens: AuthTokens) {
-        sharedPreferences.edit()
-            .putString(ACCESS_TOKEN_KEY, tokens.accessToken)
-            .putString(REFRESH_TOKEN_KEY, tokens.refreshToken)
-            .apply()
+        sharedPreferences.edit {
+            putString(ACCESS_TOKEN_KEY, tokens.accessToken)
+                .putString(REFRESH_TOKEN_KEY, tokens.refreshToken)
+        }
     }
 
     override fun getAccessToken(): String? =

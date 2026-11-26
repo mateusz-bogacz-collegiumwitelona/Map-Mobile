@@ -1,11 +1,15 @@
 package com.example.map.ui
 
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsNotEnabled
+import androidx.compose.ui.test.hasImeAction
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performImeAction
 import androidx.compose.ui.test.performTextInput
+import androidx.compose.ui.text.input.ImeAction
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.example.map.ui.screens.HomeScreen
 import com.example.map.ui.screens.LoginScreen
@@ -15,10 +19,6 @@ import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
-import androidx.compose.ui.test.assertIsNotEnabled
-import androidx.compose.ui.test.performImeAction
-import androidx.compose.ui.test.hasImeAction
-import androidx.compose.ui.text.input.ImeAction
 
 @RunWith(AndroidJUnit4::class)
 class AuthenticationUiTest {
@@ -120,7 +120,12 @@ class AuthenticationUiTest {
         var logoutCalled = false
 
         composeRule.setContent {
-            HomeScreen(onLogoutClick = { logoutCalled = true })
+            HomeScreen(
+                profileName = "Jan Kowalski",
+                profileInitials = "JK",
+                onProfileClick = {},
+                onLogoutClick = { logoutCalled = true }
+            )
         }
 
         composeRule.onNodeWithContentDescription("Wyloguj").assertIsDisplayed()

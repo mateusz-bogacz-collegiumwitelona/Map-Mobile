@@ -96,7 +96,7 @@ private fun EmailEntryStep(
     Spacer(modifier = Modifier.height(8.dp))
     Text(
         text = "Na nowy adres wyślemy 6-cyfrowy kod weryfikacyjny. " +
-            "Obecny adres pozostanie aktywny do momentu potwierdzenia zmiany.",
+                "Obecny adres pozostanie aktywny do momentu potwierdzenia zmiany.",
         color = TextGray,
         fontSize = 14.sp
     )
@@ -250,10 +250,16 @@ private fun EmailChangeTextField(
             .fillMaxWidth()
             .background(SurfaceGray, RoundedCornerShape(8.dp)),
         colors = OutlinedTextFieldDefaults.colors(
+            focusedTextColor = Color.White,
+            unfocusedTextColor = Color.White,
+            disabledTextColor = Color.White.copy(alpha = 0.6f),
+            errorTextColor = Color.White,
+            cursorColor = ButtonLight,
             focusedBorderColor = Color.Transparent,
             unfocusedBorderColor = Color.Transparent,
             disabledBorderColor = Color.Transparent,
-            errorBorderColor = ErrorRed
+            errorBorderColor = ErrorRed,
+            errorSupportingTextColor = ErrorRed
         )
     )
 }

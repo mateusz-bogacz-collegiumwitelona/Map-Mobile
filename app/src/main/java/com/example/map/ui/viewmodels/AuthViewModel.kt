@@ -4,15 +4,17 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.map.domain.model.AuthException
 import com.example.map.domain.model.AuthFailure
-import com.example.map.domain.usecase.AccountSession
-import com.example.map.domain.usecase.AuthSession
+import com.example.map.domain.session.AccountSession
+import com.example.map.domain.session.AuthSession
 import dagger.hilt.android.lifecycle.HiltViewModel
-import java.util.concurrent.CancellationException
-import javax.inject.Inject
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.util.concurrent.CancellationException
+import javax.inject.Inject
 
 @HiltViewModel
 class AuthViewModel @Inject constructor(
@@ -21,9 +23,22 @@ class AuthViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(
-        AuthUiState(isAuthenticated = authSession.hasSavedSession())
+        AuthUiState(
+            isAuthenticated = authSession.hasSavedSession(),
+            profile = accountSession.profile.value
+        )
     )
     val uiState = _uiState.asStateFlow()
+
+    private var hydrateProfileJob: Job? = null
+
+    init {
+        viewModelScope.launch {
+            accountSession.profile.collect { profile ->
+                _uiState.update { it.copy(profile = profile) }
+            }
+        }
+    }
 
     fun login(email: String, password: String) {
         if (_uiState.value.isLoading) return
@@ -64,15 +79,35 @@ class AuthViewModel @Inject constructor(
             try {
                 authSession.login(normalizedEmail, password)
                 accountSession.rememberEmail(normalizedEmail)
-                _uiState.value = AuthUiState(isAuthenticated = true)
+                _uiState.update {
+                    it.copy(
+                        isAuthenticated = true,
+                        isLoading = false,
+                        errorMessage = null,
+                        profile = accountSession.profile.value
+                    )
+                }
+
+                hydrateProfile()
             } catch (cancelled: CancellationException) {
                 throw cancelled
             } catch (error: AuthException) {
-                _uiState.update {
-                    it.copy(
-                        isLoading = false,
-                        errorMessage = messageFor(error.failure)
-                    )
+                if (error.failure == AuthFailure.EMAIL_NOT_CONFIRMED) {
+                    authSession.setPendingVerificationEmail(normalizedEmail)
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            errorMessage = null,
+                            requiresEmailVerification = true
+                        )
+                    }
+                } else {
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            errorMessage = messageFor(error.failure)
+                        )
+                    }
                 }
             } catch (_: Exception) {
                 _uiState.update {
@@ -83,6 +118,28 @@ class AuthViewModel @Inject constructor(
                 }
             }
         }
+    }
+
+    fun consumeEmailVerificationNavigation() {
+        _uiState.update { it.copy(requiresEmailVerification = false) }
+    }
+
+    private fun hydrateProfile() {
+        hydrateProfileJob?.cancel()
+        hydrateProfileJob = viewModelScope.launch {
+            try {
+                accountSession.refreshProfile()
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (_: Exception) {
+                // Nieudane pobranie profilu nie może blokować logowania ani nawigacji.
+            }
+        }
+    }
+
+    private suspend fun cancelProfileHydrationAndWait() {
+        hydrateProfileJob?.cancelAndJoin()
+        hydrateProfileJob = null
     }
 
     fun clearErrors() {
@@ -102,6 +159,10 @@ class AuthViewModel @Inject constructor(
             _uiState.update {
                 it.copy(isLoading = true, errorMessage = null)
             }
+
+            // Zatrzymaj pobieranie profilu, zanim sesja zostanie wyczyszczona,
+            // żeby spóźniona odpowiedź nie nadpisała wylogowanego stanu.
+            cancelProfileHydrationAndWait()
 
             var logoutError: String? = null
 
@@ -129,6 +190,10 @@ class AuthViewModel @Inject constructor(
     }
 
     fun onAccountDeleted() {
+        // Anulowanie jest kooperatywne; gdyby odpowiedź zdążyła wrócić przed anulowaniem,
+        // AccountSession.clear() unieważnia ją przez licznik generacji sesji.
+        hydrateProfileJob?.cancel()
+        hydrateProfileJob = null
         authSession.clearLocalSession()
         accountSession.clear()
         _uiState.value = AuthUiState(isAuthenticated = false)
@@ -138,20 +203,28 @@ class AuthViewModel @Inject constructor(
         when (failure) {
             AuthFailure.INVALID_CREDENTIALS ->
                 "Nieprawidłowy e-mail lub hasło."
+
             AuthFailure.EMAIL_NOT_CONFIRMED ->
                 "Potwierdź adres e-mail przed zalogowaniem."
+
             AuthFailure.ACCOUNT_LOCKED ->
                 "Konto jest tymczasowo zablokowane. Spróbuj ponownie później."
+
             AuthFailure.ACCOUNT_BANNED ->
                 "To konto nie może się zalogować."
+
             AuthFailure.ROLE_NOT_ALLOWED ->
                 "Logowanie jest dostępne wyłącznie dla kont z rolą USER."
+
             AuthFailure.INVALID_SESSION ->
                 "Sesja wygasła. Zaloguj się ponownie."
+
             AuthFailure.NETWORK_ERROR ->
                 "Brak połączenia z serwerem. Sprawdź internet i spróbuj ponownie."
+
             AuthFailure.TOO_MANY_ATTEMPTS ->
                 "Zbyt wiele prób logowania. Spróbuj ponownie później."
+
             AuthFailure.SERVER_ERROR,
             AuthFailure.INVALID_RESPONSE ->
                 "Serwer nie mógł obsłużyć logowania. Spróbuj ponownie."

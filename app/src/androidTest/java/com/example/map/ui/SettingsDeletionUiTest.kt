@@ -15,9 +15,10 @@ import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.example.map.domain.model.AccountDeletionError
 import com.example.map.domain.model.AccountDeletionResult
-import com.example.map.domain.usecase.AccountSession
+import com.example.map.domain.session.AccountSession
 import com.example.map.testing.FakeAccountRepository
 import com.example.map.testing.FakeProfileStorage
+import com.example.map.testing.FakeUserProfileRepository
 import com.example.map.ui.screens.SettingsScreen
 import com.example.map.ui.viewmodels.SettingsViewModel
 import kotlinx.coroutines.CompletableDeferred
@@ -44,7 +45,13 @@ class SettingsDeletionUiTest {
     fun setUp() {
         repository = FakeAccountRepository()
         profileStorage = FakeProfileStorage("user@example.com")
-        viewModel = SettingsViewModel(AccountSession(repository, profileStorage))
+        viewModel = SettingsViewModel(
+            AccountSession(
+                accountRepository = repository,
+                profileRepository = FakeUserProfileRepository(),
+                profileStorage = profileStorage
+            )
+        )
         changeEmailClicks = 0
 
         composeRule.setContent {

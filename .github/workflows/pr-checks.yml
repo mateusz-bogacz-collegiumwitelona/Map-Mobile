@@ -111,8 +111,8 @@ jobs:
       - name: Print Instrumented Test Failures
         if: failure()
         run: |
-            echo "=== RAPORT ==="
-            find app/build -name "*.xml" -path "*androidTest-results*" -exec cat {} + || true
+          echo "=== RAPORT ==="
+          find app/build -name "*.xml" -path "*androidTest-results*" -exec cat {} + || true
 
       - name: Publish Integration Test Results
         uses: EnricoMi/publish-unit-test-result-action@v2

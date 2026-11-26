@@ -14,9 +14,10 @@ import androidx.compose.ui.test.performTextInput
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.example.map.domain.model.EmailChangeError
 import com.example.map.domain.model.EmailChangeResult
-import com.example.map.domain.usecase.AccountSession
+import com.example.map.domain.session.AccountSession
 import com.example.map.testing.FakeAccountRepository
 import com.example.map.testing.FakeProfileStorage
+import com.example.map.testing.FakeUserProfileRepository
 import com.example.map.ui.screens.ChangeEmailScreen
 import com.example.map.ui.viewmodels.ChangeEmailStep
 import com.example.map.ui.viewmodels.ChangeEmailViewModel
@@ -41,7 +42,13 @@ class ChangeEmailFlowUiTest {
     fun setUp() {
         repository = FakeAccountRepository()
         profileStorage = FakeProfileStorage("current@example.com")
-        viewModel = ChangeEmailViewModel(AccountSession(repository, profileStorage))
+        viewModel = ChangeEmailViewModel(
+            AccountSession(
+                accountRepository = repository,
+                profileRepository = FakeUserProfileRepository(),
+                profileStorage = profileStorage
+            )
+        )
 
         composeRule.setContent {
             val uiState by viewModel.uiState.collectAsState()

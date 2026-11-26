@@ -1,6 +1,7 @@
 package com.example.map.domain.model
 
 data class UserProfile(
-    val firstName: String,
-    val lastName: String
+    val firstName: String = "",
+    val lastName: String = "",
+    val isPublic: Boolean = false
 )
