@@ -26,6 +26,7 @@ class HomeScreenTest {
 
         composeRule.setContent {
             HomeScreen(
+                onProfileClick = {},
                 onLogoutClick = {},
                 uiState = HomeUiState(
                     firstName = "Tomasz",
@@ -55,6 +56,7 @@ class HomeScreenTest {
 
         composeRule.setContent {
             HomeScreen(
+                onProfileClick = {},
                 onLogoutClick = {},
                 uiState = HomeUiState(
                     isLoading = false,
