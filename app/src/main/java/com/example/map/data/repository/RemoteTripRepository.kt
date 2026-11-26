@@ -24,6 +24,7 @@ import javax.inject.Inject
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import com.example.map.domain.model.TripSegmentDetails
+import com.example.map.data.remote.dto.TripPointResponseDto
 
 class RemoteTripRepository @Inject constructor(
     private val tripApi: TripApi,
@@ -161,8 +162,8 @@ class RemoteTripRepository @Inject constructor(
             segments = orderedSegments.mapIndexed { index, segment ->
                 TripSegmentDraft(
                     id = (index + 1).toLong(),
-                    origin = segment.origin.toPlaceOption("origin-$index"),
-                    destination = segment.destination.toPlaceOption("destination-$index"),
+                    origin = segment.origin.toPlaceOption(),
+                    destination = segment.destination.toPlaceOption(),
                     transportType = TripTransportType.entries.firstOrNull {
                         it.apiValue.equals(segment.transportType, ignoreCase = true)
                     } ?: TripTransportType.OTHER
@@ -190,10 +191,8 @@ class RemoteTripRepository @Inject constructor(
         )
     }
 
-    private fun com.example.map.data.remote.dto.TripPointResponseDto.toPlaceOption(
-        pointId: String
-    ) = PlaceOption(
-        id = pointId,
+    private fun TripPointResponseDto.toPlaceOption() = PlaceOption(
+        id = placeId,
         name = name,
         countryName = "",
         countryCode = "",
@@ -202,9 +201,7 @@ class RemoteTripRepository @Inject constructor(
     )
 
     private fun PlaceOption.toRequest() = TripPointRequestDto(
-        name = name,
-        latitude = latitude,
-        longitude = longitude
+        placeId = id
     )
 
     private fun formatUtc(millis: Long): String {
