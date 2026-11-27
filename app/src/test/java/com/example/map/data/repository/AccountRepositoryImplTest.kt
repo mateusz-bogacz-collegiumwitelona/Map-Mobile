@@ -18,6 +18,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Test
 import retrofit2.Response
 import java.io.IOException
+import com.example.map.domain.model.UserProfile
 
 class RemoteAccountRepositoryTest {
 
@@ -243,6 +244,24 @@ class RemoteAccountRepositoryTest {
         assertEquals(AccountDeletionResult.Success, repository.deleteAccount())
     }
 
+    @Test
+    fun getCurrentUserProfileReturnsFirstAndLastName() = runTest {
+        service.profileResponse = Response.success(
+            ApiEnvelope(
+                isSuccess = true,
+                data = UserProfileDataResponse(
+                    firstName = "Tomasz",
+                    lastName = "Kot"
+                )
+            )
+        )
+
+        assertEquals(
+            UserProfile(firstName = "Tomasz", lastName = "Kot"),
+            repository.getCurrentUserProfile()
+        )
+    }
+
     private fun errorResponse(
         status: Int,
         errorCode: String? = null,
@@ -275,9 +294,8 @@ private class FakeUserApiService : UserApiService {
     var confirmException: Exception? = null
     var deleteException: Exception? = null
 
-    override suspend fun getProfile(): Response<ApiEnvelope<UserProfileDataResponse>> {
-        error("Nie używane w testach konta.")
-    }
+    override suspend fun getProfile(): Response<ApiEnvelope<UserProfileDataResponse>> =
+        profileResponse
 
     override suspend fun updateNames(
         request: EditUserNamesRequest
@@ -307,4 +325,15 @@ private class FakeUserApiService : UserApiService {
         deleteException?.let { throw it }
         return deleteResponse
     }
+
+    var profileResponse: Response<ApiEnvelope<UserProfileDataResponse>> =
+        Response.success(
+            ApiEnvelope(
+                isSuccess = true,
+                data = UserProfileDataResponse(
+                    firstName = "Jan",
+                    lastName = "Kowalski"
+                )
+            )
+        )
 }

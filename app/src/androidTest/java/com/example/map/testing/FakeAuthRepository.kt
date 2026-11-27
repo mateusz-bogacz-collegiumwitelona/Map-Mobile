@@ -1,18 +1,12 @@
 package com.example.map.testing
 
-import com.example.map.domain.model.AccountDeletionResult
 import com.example.map.domain.model.AuthException
 import com.example.map.domain.model.AuthFailure
 import com.example.map.domain.model.AuthTokens
 import com.example.map.domain.model.AuthenticatedAccount
-import com.example.map.domain.model.EmailChangeResult
 import com.example.map.domain.model.EmailVerificationResult
 import com.example.map.domain.model.RegistrationResult
-import com.example.map.domain.model.UserProfile
-import com.example.map.domain.repository.AccountRepository
 import com.example.map.domain.repository.AuthRepository
-import com.example.map.domain.repository.ProfileStorage
-import com.example.map.domain.repository.TokenStorage
 import kotlinx.coroutines.CompletableDeferred
 
 class FakeAuthRepository : AuthRepository {
@@ -34,7 +28,8 @@ class FakeAuthRepository : AuthRepository {
     var lastConfirmedEmail: String? = null
     var lastConfirmedCode: String? = null
 
-    var resendVerificationResult: EmailVerificationResult = EmailVerificationResult.Success
+    var resendVerificationResult: EmailVerificationResult =
+        EmailVerificationResult.Success
     var resendVerificationGate: CompletableDeferred<Unit>? = null
     var resendVerificationCalls = 0
     var lastResendVerificationEmail: String? = null
@@ -43,11 +38,18 @@ class FakeAuthRepository : AuthRepository {
     var lastLogoutTokens: Pair<String, String>? = null
 
     var loginAccount = AuthenticatedAccount(
-        tokens = AuthTokens("access-token", "refresh-token"),
+        tokens = AuthTokens(
+            accessToken = "access-token",
+            refreshToken = "refresh-token"
+        ),
         roles = listOf("USER")
     )
+
     var refreshedAccount = AuthenticatedAccount(
-        tokens = AuthTokens("refreshed-access", "refreshed-refresh"),
+        tokens = AuthTokens(
+            accessToken = "refreshed-access",
+            refreshToken = "refreshed-refresh"
+        ),
         roles = listOf("USER")
     )
 
@@ -62,8 +64,8 @@ class FakeAuthRepository : AuthRepository {
         set(value) {
             refreshedAccount = value
         }
-    var loginError: Exception? = null
 
+    var loginError: Exception? = null
     var refreshError: Exception? = null
     var logoutError: Exception? = null
 
@@ -88,15 +90,19 @@ class FakeAuthRepository : AuthRepository {
     override suspend fun refresh(refreshToken: String): AuthenticatedAccount {
         refreshCalls++
         refreshError?.let { throw it }
-        return refreshResult
+        return refreshedAccount
     }
 
     override suspend fun logout(accessToken: String, refreshToken: String) {
         logoutCalls++
         lastLogoutTokens = accessToken to refreshToken
+        lastLoggedOutAccessToken = accessToken
+        lastLoggedOutRefreshToken = refreshToken
+
         if (failFirstLogoutWithInvalidSession && logoutCalls == 1) {
             throw AuthException(AuthFailure.INVALID_SESSION)
         }
+
         logoutError?.let { throw it }
     }
 
@@ -139,93 +145,5 @@ class FakeAuthRepository : AuthRepository {
         lastResendVerificationEmail = email
         resendVerificationGate?.await()
         return resendVerificationResult
-    }
-}
-
-class FakeAccountRepository : AccountRepository {
-
-    var requestResult: EmailChangeResult = EmailChangeResult.Success
-    var confirmResult: EmailChangeResult = EmailChangeResult.Success
-    var deletionResult: AccountDeletionResult = AccountDeletionResult.Success
-
-    var requestGate: CompletableDeferred<Unit>? = null
-    var confirmGate: CompletableDeferred<Unit>? = null
-    var deletionGate: CompletableDeferred<Unit>? = null
-
-    var requestCalls = 0
-    var confirmCalls = 0
-    var deletionCalls = 0
-
-    var lastRequestedEmail: String? = null
-    var lastConfirmedCode: String? = null
-
-    override suspend fun requestEmailChange(newEmail: String): EmailChangeResult {
-        requestCalls++
-        lastRequestedEmail = newEmail
-        requestGate?.await()
-        return requestResult
-    }
-
-    override suspend fun confirmEmailChange(code: String): EmailChangeResult {
-        confirmCalls++
-        lastConfirmedCode = code
-        confirmGate?.await()
-        return confirmResult
-    }
-
-    override suspend fun deleteAccount(): AccountDeletionResult {
-        deletionCalls++
-        deletionGate?.await()
-        return deletionResult
-    }
-}
-
-class FakeProfileStorage(
-    initialProfile: UserProfile? = null,
-    initialEmail: String? = null
-) : ProfileStorage {
-
-    constructor(initialEmail: String?) : this(
-        initialProfile = null,
-        initialEmail = initialEmail
-    )
-
-    private var email: String? = initialEmail
-    private var profile: UserProfile? = initialProfile
-
-    override fun getEmail(): String? = email
-
-    override fun saveEmail(email: String) {
-        this.email = email
-    }
-
-    override fun getProfile(): UserProfile? = profile
-
-    override fun saveProfile(profile: UserProfile) {
-        this.profile = profile
-    }
-
-    override fun clear() {
-        email = null
-        profile = null
-    }
-}
-
-class FakeTokenStorage(initialTokens: AuthTokens? = null) : TokenStorage {
-    private var access: String? = initialTokens?.accessToken
-    private var refresh: String? = initialTokens?.refreshToken
-
-    override fun saveTokens(tokens: AuthTokens) {
-        access = tokens.accessToken
-        refresh = tokens.refreshToken
-    }
-
-    override fun getAccessToken(): String? = access
-
-    override fun getRefreshToken(): String? = refresh
-
-    override fun clearTokens() {
-        access = null
-        refresh = null
     }
 }

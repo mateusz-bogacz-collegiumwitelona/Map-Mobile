@@ -34,6 +34,8 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import com.example.map.ui.viewmodels.HomeViewModel
+import com.example.map.domain.usecase.AccountSession as HomeAccountSession
 
 @RunWith(AndroidJUnit4::class)
 class AccountDeletionTeardownTest {
@@ -48,6 +50,7 @@ class AccountDeletionTeardownTest {
     private lateinit var accountSession: AccountSession
     private lateinit var authViewModel: AuthViewModel
     private lateinit var settingsViewModel: SettingsViewModel
+    private lateinit var homeViewModel: HomeViewModel
 
     @Before
     fun setUp() {
@@ -74,11 +77,19 @@ class AccountDeletionTeardownTest {
         )
         settingsViewModel = SettingsViewModel(accountSession)
 
+        homeViewModel = HomeViewModel(
+            HomeAccountSession(
+                accountRepository = repository,
+                profileStorage = profileStorage
+            )
+        )
+
         composeRule.setContent {
             AppNavigation(
                 viewModel = authViewModel,
                 settingsViewModelFactory = { settingsViewModel },
-                changeEmailViewModelFactory = { ChangeEmailViewModel(accountSession) }
+                changeEmailViewModelFactory = { ChangeEmailViewModel(accountSession) },
+                homeViewModelFactory = { homeViewModel }
             )
         }
     }

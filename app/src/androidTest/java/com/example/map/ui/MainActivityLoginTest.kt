@@ -12,8 +12,9 @@ import com.example.map.domain.model.AuthFailure
 import com.example.map.domain.model.AuthTokens
 import com.example.map.domain.model.AuthenticatedAccount
 import com.example.map.domain.model.UserProfile
-import com.example.map.domain.session.AccountSession
+import com.example.map.domain.session.AccountSession as SessionAccountSession
 import com.example.map.domain.session.AuthSession
+import com.example.map.domain.usecase.AccountSession as HomeAccountSession
 import com.example.map.testing.FakeAccountRepository
 import com.example.map.testing.FakeAuthRepository
 import com.example.map.testing.FakeProfileStorage
@@ -21,6 +22,7 @@ import com.example.map.testing.FakeTokenStorage
 import com.example.map.testing.FakeUserProfileRepository
 import com.example.map.ui.navigation.AppNavigation
 import com.example.map.ui.viewmodels.AuthViewModel
+import com.example.map.ui.viewmodels.HomeViewModel
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Rule
@@ -37,8 +39,12 @@ class MainActivityLoginTest {
     fun successfulUserLoginStoresTokensHydratesProfileAndOpensHome() {
         val tokenStorage = FakeTokenStorage()
         val profileStorage = FakeProfileStorage()
+        val accountRepository = FakeAccountRepository()
         val profileRepository = FakeUserProfileRepository().apply {
-            remoteProfile = UserProfile(firstName = "Jan", lastName = "Kowalski")
+            remoteProfile = UserProfile(
+                firstName = "Jan",
+                lastName = "Kowalski"
+            )
         }
 
         val authRepository = FakeAuthRepository().apply {
@@ -51,17 +57,27 @@ class MainActivityLoginTest {
             )
         }
 
-        val viewModel = AuthViewModel(
-            AuthSession(tokenStorage, authRepository),
-            AccountSession(
-                accountRepository = FakeAccountRepository(),
-                profileRepository = profileRepository,
+        val accountSession = SessionAccountSession(
+            accountRepository = accountRepository,
+            profileRepository = profileRepository,
+            profileStorage = profileStorage
+        )
+        val homeViewModel = HomeViewModel(
+            HomeAccountSession(
+                accountRepository = accountRepository,
                 profileStorage = profileStorage
             )
         )
+        val viewModel = AuthViewModel(
+            authSession = AuthSession(tokenStorage, authRepository),
+            accountSession = accountSession
+        )
 
         composeRule.setContent {
-            AppNavigation(viewModel = viewModel)
+            AppNavigation(
+                viewModel = viewModel,
+                homeViewModelFactory = { homeViewModel }
+            )
         }
 
         composeRule.onNodeWithText("E-mail")
@@ -91,10 +107,9 @@ class MainActivityLoginTest {
     @Test
     fun invalidEmailShowsValidationErrorWithoutCallingBackend() {
         val repository = FakeAuthRepository()
-
         val viewModel = AuthViewModel(
-            AuthSession(FakeTokenStorage(), repository),
-            testAccountSession(FakeProfileStorage())
+            authSession = AuthSession(FakeTokenStorage(), repository),
+            accountSession = testAccountSession(FakeProfileStorage())
         )
 
         composeRule.setContent {
@@ -121,10 +136,9 @@ class MainActivityLoginTest {
         val repository = FakeAuthRepository().apply {
             loginError = AuthException(AuthFailure.NETWORK_ERROR)
         }
-
         val viewModel = AuthViewModel(
-            AuthSession(FakeTokenStorage(), repository),
-            testAccountSession(FakeProfileStorage())
+            authSession = AuthSession(FakeTokenStorage(), repository),
+            accountSession = testAccountSession(FakeProfileStorage())
         )
 
         composeRule.setContent {
@@ -149,9 +163,10 @@ class MainActivityLoginTest {
 
     private fun testAccountSession(
         profileStorage: FakeProfileStorage
-    ): AccountSession = AccountSession(
-        accountRepository = FakeAccountRepository(),
-        profileRepository = FakeUserProfileRepository(),
-        profileStorage = profileStorage
-    )
+    ): SessionAccountSession =
+        SessionAccountSession(
+            accountRepository = FakeAccountRepository(),
+            profileRepository = FakeUserProfileRepository(),
+            profileStorage = profileStorage
+        )
 }

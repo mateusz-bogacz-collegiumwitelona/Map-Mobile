@@ -19,6 +19,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import com.example.map.ui.viewmodels.HomeUiState
 
 @RunWith(AndroidJUnit4::class)
 class AuthenticationUiTest {
@@ -121,10 +122,13 @@ class AuthenticationUiTest {
 
         composeRule.setContent {
             HomeScreen(
-                profileName = "Jan Kowalski",
-                profileInitials = "JK",
                 onProfileClick = {},
-                onLogoutClick = { logoutCalled = true }
+                onLogoutClick = { logoutCalled = true },
+                uiState = HomeUiState(
+                    firstName = "Jan",
+                    lastName = "Kowalski",
+                    isLoading = false
+                )
             )
         }
 
