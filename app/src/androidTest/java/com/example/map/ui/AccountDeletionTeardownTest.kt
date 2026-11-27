@@ -77,6 +77,13 @@ class AccountDeletionTeardownTest {
         )
         settingsViewModel = SettingsViewModel(accountSession)
 
+        homeViewModel = HomeViewModel(
+            HomeAccountSession(
+                accountRepository = repository,
+                profileStorage = profileStorage
+            )
+        )
+
         composeRule.setContent {
             AppNavigation(
                 viewModel = authViewModel,
@@ -85,13 +92,6 @@ class AccountDeletionTeardownTest {
                 homeViewModelFactory = { homeViewModel }
             )
         }
-
-        homeViewModel = HomeViewModel(
-            HomeAccountSession(
-                accountRepository = repository,
-                profileStorage = profileStorage
-            )
-        )
     }
 
     @Test

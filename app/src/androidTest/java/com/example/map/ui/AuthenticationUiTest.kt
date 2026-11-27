@@ -130,30 +130,30 @@ class AuthenticationUiTest {
                     isLoading = false
                 )
             )
-
-            composeRule.onNodeWithContentDescription("Wyloguj").assertIsDisplayed()
-            composeRule.onNodeWithContentDescription("Wyloguj").performClick()
-
-            composeRule.runOnIdle {
-                assertTrue(logoutCalled)
-            }
         }
 
-        @Test
-        fun loadingStateDisablesLoginInputs() {
-            composeRule.setContent {
-                LoginScreen(
-                    state = AuthUiState(
-                        isAuthenticated = false,
-                        isLoading = true
-                    ),
-                    onLoginClick = { _, _ -> },
-                    onInputsChanged = {}
-                )
-            }
+        composeRule.onNodeWithContentDescription("Wyloguj").assertIsDisplayed()
+        composeRule.onNodeWithContentDescription("Wyloguj").performClick()
 
-            composeRule.onNodeWithText("E-mail").assertIsNotEnabled()
-            composeRule.onNodeWithText("Hasło").assertIsNotEnabled()
+        composeRule.runOnIdle {
+            assertTrue(logoutCalled)
         }
+    }
+
+    @Test
+    fun loadingStateDisablesLoginInputs() {
+        composeRule.setContent {
+            LoginScreen(
+                state = AuthUiState(
+                    isAuthenticated = false,
+                    isLoading = true
+                ),
+                onLoginClick = { _, _ -> },
+                onInputsChanged = {}
+            )
+        }
+
+        composeRule.onNodeWithText("E-mail").assertIsNotEnabled()
+        composeRule.onNodeWithText("Hasło").assertIsNotEnabled()
     }
 }
