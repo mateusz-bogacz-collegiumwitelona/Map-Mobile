@@ -1,11 +1,11 @@
 package com.example.map.domain.session
 
+import com.example.map.domain.model.account.EmailVerificationError
+import com.example.map.domain.model.account.EmailVerificationResult
 import com.example.map.domain.model.auth.AuthException
 import com.example.map.domain.model.auth.AuthFailure
 import com.example.map.domain.model.auth.AuthTokens
 import com.example.map.domain.model.auth.AuthenticatedAccount
-import com.example.map.domain.model.account.EmailVerificationError
-import com.example.map.domain.model.account.EmailVerificationResult
 import com.example.map.domain.model.auth.RegistrationError
 import com.example.map.domain.model.auth.RegistrationResult
 import com.example.map.testing.FakeAuthRepository

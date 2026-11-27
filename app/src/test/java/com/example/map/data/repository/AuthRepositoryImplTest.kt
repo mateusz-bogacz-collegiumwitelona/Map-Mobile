@@ -1,10 +1,10 @@
 package com.example.map.data.repository
 
 import com.example.map.data.remote.service.AuthApiService
-import com.example.map.domain.model.auth.AuthException
-import com.example.map.domain.model.auth.AuthFailure
 import com.example.map.domain.model.account.EmailVerificationError
 import com.example.map.domain.model.account.EmailVerificationResult
+import com.example.map.domain.model.auth.AuthException
+import com.example.map.domain.model.auth.AuthFailure
 import com.example.map.domain.model.auth.RegistrationError
 import com.example.map.domain.model.auth.RegistrationResult
 import kotlinx.coroutines.runBlocking

@@ -2,40 +2,38 @@ package com.example.map.ui.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.map.domain.model.common.PagedData
 import com.example.map.domain.model.trip.TripSortBy
 import com.example.map.domain.model.trip.TripSummary
 import com.example.map.domain.model.trip.TripsError
 import com.example.map.domain.model.trip.TripsResult
 import com.example.map.domain.repository.TripRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.debounce
-import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-data class TripsQuery(
-    val pageNumber: Int = 1,
-    val pageSize: Int = 10,
+data class TripsUiState(
+    val items: List<TripSummary> = emptyList(),
+    val isLoading: Boolean = false,
+    val isRefreshing: Boolean = false,
+    val isLoadingMore: Boolean = false,
+    val hasNextPage: Boolean = false,
+    val currentPage: Int = 0,
+    val error: TripsError? = null,
+    val errorMessage: String? = null,
+    val searchTerm: String = "",
     val sortBy: TripSortBy? = null,
-    val sortDescending: Boolean = true,
-    val searchTerm: String? = null,
-    val refreshTrigger: Int = 0
-)
-
-sealed interface TripsUiState {
-    data object Loading : TripsUiState
-    data class Success(val data: PagedData<TripSummary>) : TripsUiState
-    data class Error(val error: TripsError, val message: String? = null) : TripsUiState
+    val sortDescending: Boolean = true
+) {
+    val isEmpty: Boolean
+        get() = !isLoading && !isRefreshing && items.isEmpty() && error == null
 }
 
 @HiltViewModel
@@ -43,52 +41,147 @@ sealed interface TripsUiState {
 class TripsViewModel @Inject constructor(
     private val tripRepository: TripRepository
 ) : ViewModel() {
-    private val _query = MutableStateFlow(TripsQuery())
-    val query: StateFlow<TripsQuery> = _query.asStateFlow()
+    private val _uiState = MutableStateFlow(TripsUiState(isLoading = true))
+    val uiState: StateFlow<TripsUiState> = _uiState.asStateFlow()
+    private var fetchJob: Job? = null
+    private var searchDebounceJob: Job? = null
 
-    val uiState: StateFlow<TripsUiState> = _query
-        .debounce { if (it.searchTerm.isNullOrBlank()) 0L else 300L }
-        .distinctUntilChanged()
-        .flatMapLatest { q ->
-            flow {
-                emit(TripsUiState.Loading)
-                when (val result = tripRepository.getUserTrips(
-                    pageNumber = q.pageNumber,
-                    pageSize = q.pageSize,
-                    sortBy = q.sortBy,
-                    sortDescending = q.sortDescending,
-                    searchTerm = q.searchTerm
-                )) {
-                    is TripsResult.Success -> emit(TripsUiState.Success(result.data))
-                    is TripsResult.Failure -> emit(TripsUiState.Error(result.error, result.message))
-                }
-            }
-        }
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5_000),
-            initialValue = TripsUiState.Loading
-        )
 
-    fun onSearchChanged(term: String) {
-        _query.update { it.copy(searchTerm = term, pageNumber = 1) }
-    }
-
-    fun onSortChange(sortBy: TripSortBy, descending: Boolean) {
-        _query.update { it.copy(sortBy = sortBy, sortDescending = descending, pageNumber = 1) }
-    }
-
-    fun onNextPage() {
-        val current = (uiState.value as? TripsUiState.Success)?.data ?: return
-        if (current.hasNextPage) _query.update { it.copy(pageNumber = current.pageNumber + 1) }
-    }
-
-    fun onPreviousPage() {
-        val current = (uiState.value as? TripsUiState.Success)?.data ?: return
-        if (current.hasPreviousPage) _query.update { it.copy(pageNumber = current.pageNumber - 1) }
+    init {
+        loadFirstPage(isRefresh = false)
     }
 
     fun refresh() {
-        _query.update { it.copy(refreshTrigger = it.refreshTrigger + 1) }
+        searchDebounceJob?.cancel()
+        loadFirstPage(isRefresh = true)
+    }
+
+    fun retry() {
+        if (_uiState.value.items.isEmpty()) {
+            loadFirstPage(isRefresh = false)
+        } else {
+            loadNextPage()
+        }
+    }
+
+    fun onSearchChange(term: String) {
+        _uiState.update { it.copy(searchTerm = term) }
+        searchDebounceJob?.cancel()
+        searchDebounceJob = viewModelScope.launch {
+            if (term.isNotBlank()) delay(300L)
+            loadFirstPage(isRefresh = false)
+        }
+    }
+
+    fun onSortChange(sortBy: TripSortBy, descending: Boolean) {
+        searchDebounceJob?.cancel()
+        _uiState.update {
+            it.copy(sortBy = sortBy, sortDescending = descending)
+        }
+        loadFirstPage(isRefresh = false)
+    }
+
+    fun loadNextPage() {
+        val state = _uiState.value
+        if (state.isLoading || state.isRefreshing || state.isLoadingMore || !state.hasNextPage) {
+            return
+        }
+
+        val nextPage = state.currentPage + 1
+        fetchJob = viewModelScope.launch {
+            _uiState.update {
+                it.copy(
+                    isLoadingMore = true,
+                    error = null,
+                    errorMessage = null
+                )
+            }
+
+            when (val result = tripRepository.getUserTrips(
+                pageNumber = nextPage,
+                pageSize = PAGE_SIZE,
+                sortBy = state.sortBy,
+                sortDescending = state.sortDescending,
+                searchTerm = state.searchTerm
+            )) {
+                is TripsResult.Success -> {
+                    val existingIds = _uiState.value.items.mapTo(HashSet()) {it.id}
+                    val newItems = result.data.items.filterNot { it.id in existingIds }
+
+                    _uiState.update {
+                        it.copy(
+                            items = it.items + newItems,
+                            isLoadingMore = false,
+                            currentPage = result.data.pageNumber,
+                            hasNextPage = result.data.hasNextPage
+                        )
+                    }
+                }
+
+                is TripsResult.Failure -> {
+                    _uiState.update {
+                        it.copy(
+                            isLoadingMore = false,
+                            error = result.error,
+                            errorMessage = result.message
+                        )
+                    }
+                }
+            }
+        }
+    }
+
+    private fun loadFirstPage(isRefresh: Boolean) {
+        fetchJob?.cancel()
+        val state = _uiState.value
+
+        fetchJob = viewModelScope.launch {
+            _uiState.update {
+                it.copy(
+                    isLoading = !isRefresh,
+                    isRefreshing = isRefresh,
+                    isLoadingMore = false,
+                    error = null,
+                    errorMessage = null
+                )
+            }
+
+            when(val result = tripRepository.getUserTrips(
+                pageNumber = 1,
+                pageSize = PAGE_SIZE,
+                sortBy = state.sortBy,
+                sortDescending = state.sortDescending,
+                searchTerm = state.searchTerm
+            )) {
+                is TripsResult.Success -> {
+                    _uiState.update {
+                        it.copy(
+                            items = result.data.items,
+                            isLoading = false,
+                            isRefreshing = false,
+                            currentPage = result.data.pageNumber,
+                            hasNextPage = result.data.hasNextPage,
+                            error = null,
+                            errorMessage = null
+                        )
+                    }
+                }
+
+                is TripsResult.Failure -> {
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            isRefreshing = false,
+                            error = result.error,
+                            errorMessage = result.message
+                        )
+                    }
+                }
+            }
+        }
+    }
+
+    private companion object {
+        const val PAGE_SIZE = 10
     }
 }

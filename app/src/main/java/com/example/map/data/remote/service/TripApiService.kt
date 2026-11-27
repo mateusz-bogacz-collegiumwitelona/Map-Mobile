@@ -8,7 +8,7 @@ import retrofit2.http.GET
 import retrofit2.http.Query
 
 interface TripApiService {
-    @GET("api/trips")
+    @GET("api/trip")
     suspend fun getUserTrips(
         @Query("pageNumber") pageNumber: Int? = null,
         @Query("pageSize") pageSize: Int? = null,

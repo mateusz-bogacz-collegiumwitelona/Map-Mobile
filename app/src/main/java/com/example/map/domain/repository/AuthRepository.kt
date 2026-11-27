@@ -1,7 +1,7 @@
 package com.example.map.domain.repository
 
-import com.example.map.domain.model.auth.AuthenticatedAccount
 import com.example.map.domain.model.account.EmailVerificationResult
+import com.example.map.domain.model.auth.AuthenticatedAccount
 import com.example.map.domain.model.auth.RegistrationResult
 
 interface AuthRepository {
