@@ -1,4 +1,4 @@
-package com.example.map.domain.usecase
+package com.example.map.domain.helper
 
 import com.example.map.domain.geo.GeoDistance
 import com.example.map.domain.geo.GreatCircle
