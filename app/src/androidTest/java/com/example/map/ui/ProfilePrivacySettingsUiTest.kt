@@ -15,10 +15,10 @@ import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTextClearance
 import androidx.compose.ui.test.performTextInput
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import com.example.map.domain.model.AuthTokens
-import com.example.map.domain.model.ProfileUpdateError
-import com.example.map.domain.model.ProfileUpdateResult
-import com.example.map.domain.model.UserProfile
+import com.example.map.domain.model.auth.AuthTokens
+import com.example.map.domain.model.user.ProfileUpdateError
+import com.example.map.domain.model.user.ProfileUpdateResult
+import com.example.map.domain.model.user.UserProfile
 import com.example.map.domain.session.AccountSession
 import com.example.map.domain.session.AuthSession
 import com.example.map.testing.FakeAccountRepository

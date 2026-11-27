@@ -1,4 +1,6 @@
-package com.example.map.domain.model
+package com.example.map.domain.model.trip
+
+import com.example.map.domain.model.common.PagedData
 
 enum class TripsError {
     UNAUTHORIZED,

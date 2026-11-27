@@ -1,4 +1,4 @@
-package com.example.map.domain.model
+package com.example.map.domain.model.user
 
 data class UserProfile(
     val firstName: String = "",

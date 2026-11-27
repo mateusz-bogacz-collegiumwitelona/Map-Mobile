@@ -2,8 +2,8 @@ package com.example.map.domain
 
 import com.example.map.domain.geo.GeoDistance
 import com.example.map.domain.helper.RouteGeometryCalculator
-import com.example.map.domain.model.GeoPoint
-import com.example.map.domain.model.TransportType
+import com.example.map.domain.model.geo.GeoPoint
+import com.example.map.domain.model.trip.TransportType
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue

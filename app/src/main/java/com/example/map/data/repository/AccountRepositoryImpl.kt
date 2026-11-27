@@ -4,10 +4,10 @@ import com.example.map.data.remote.dto.common.ApiEnvelope
 import com.example.map.data.remote.dto.request.ChangeEmailRequest
 import com.example.map.data.remote.dto.request.ConfirmEmailChangeRequest
 import com.example.map.data.remote.service.UserApiService
-import com.example.map.domain.model.AccountDeletionError
-import com.example.map.domain.model.AccountDeletionResult
-import com.example.map.domain.model.EmailChangeError
-import com.example.map.domain.model.EmailChangeResult
+import com.example.map.domain.model.account.AccountDeletionError
+import com.example.map.domain.model.account.AccountDeletionResult
+import com.example.map.domain.model.account.EmailChangeError
+import com.example.map.domain.model.account.EmailChangeResult
 import com.example.map.domain.repository.AccountRepository
 import kotlinx.serialization.json.Json
 import retrofit2.Response

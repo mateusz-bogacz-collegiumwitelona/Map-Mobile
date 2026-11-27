@@ -1,7 +1,7 @@
 package com.example.map.ui.viewmodels
 
-import com.example.map.domain.model.EmailChangeError
-import com.example.map.domain.model.EmailChangeResult
+import com.example.map.domain.model.account.EmailChangeError
+import com.example.map.domain.model.account.EmailChangeResult
 import com.example.map.domain.session.AccountSession
 import com.example.map.testing.FakeAccountRepository
 import com.example.map.testing.FakeProfileStorage

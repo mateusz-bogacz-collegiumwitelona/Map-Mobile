@@ -1,6 +1,6 @@
 package com.example.map.domain.geo
 
-import com.example.map.domain.model.GeoPoint
+import com.example.map.domain.model.geo.GeoPoint
 import kotlin.math.PI
 import kotlin.math.atan2
 import kotlin.math.ceil

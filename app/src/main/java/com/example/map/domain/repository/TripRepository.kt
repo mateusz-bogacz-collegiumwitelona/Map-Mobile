@@ -1,7 +1,7 @@
 package com.example.map.domain.repository
 
-import com.example.map.domain.model.TripSortBy
-import com.example.map.domain.model.TripsResult
+import com.example.map.domain.model.trip.TripSortBy
+import com.example.map.domain.model.trip.TripsResult
 
 interface TripRepository {
     suspend fun getUserTrips(

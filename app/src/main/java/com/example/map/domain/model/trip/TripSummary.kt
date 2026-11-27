@@ -1,4 +1,4 @@
-package com.example.map.domain.model
+package com.example.map.domain.model.trip
 
 data class TripSummary(
     val id: String,

@@ -1,4 +1,4 @@
-package com.example.map.domain.model
+package com.example.map.domain.model.user
 
 enum class ProfileUpdateError {
     FIRST_NAME_INVALID,

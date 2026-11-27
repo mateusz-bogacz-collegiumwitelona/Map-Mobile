@@ -1,6 +1,6 @@
 package com.example.map.domain.geo
 
-import com.example.map.domain.model.GeoPoint
+import com.example.map.domain.model.geo.GeoPoint
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import kotlin.math.PI

@@ -1,12 +1,12 @@
 package com.example.map.testing
 
-import com.example.map.domain.model.AccountDeletionResult
-import com.example.map.domain.model.AuthTokens
-import com.example.map.domain.model.AuthenticatedAccount
-import com.example.map.domain.model.EmailChangeResult
-import com.example.map.domain.model.EmailVerificationResult
-import com.example.map.domain.model.RegistrationResult
-import com.example.map.domain.model.UserProfile
+import com.example.map.domain.model.account.AccountDeletionResult
+import com.example.map.domain.model.auth.AuthTokens
+import com.example.map.domain.model.auth.AuthenticatedAccount
+import com.example.map.domain.model.account.EmailChangeResult
+import com.example.map.domain.model.account.EmailVerificationResult
+import com.example.map.domain.model.auth.RegistrationResult
+import com.example.map.domain.model.user.UserProfile
 import com.example.map.domain.repository.AccountRepository
 import com.example.map.domain.repository.AuthRepository
 import com.example.map.domain.repository.ProfileStorage

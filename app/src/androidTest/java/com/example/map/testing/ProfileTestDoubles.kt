@@ -1,7 +1,7 @@
 package com.example.map.testing
 
-import com.example.map.domain.model.ProfileUpdateResult
-import com.example.map.domain.model.UserProfile
+import com.example.map.domain.model.user.ProfileUpdateResult
+import com.example.map.domain.model.user.UserProfile
 import com.example.map.domain.repository.ProfileRepository
 import kotlinx.coroutines.CompletableDeferred
 

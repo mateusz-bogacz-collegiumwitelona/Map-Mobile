@@ -1,9 +1,9 @@
 package com.example.map.ui.viewmodels
 
-import com.example.map.domain.model.PagedData
-import com.example.map.domain.model.TripSortBy
-import com.example.map.domain.model.TripsError
-import com.example.map.domain.model.TripsResult
+import com.example.map.domain.model.common.PagedData
+import com.example.map.domain.model.trip.TripSortBy
+import com.example.map.domain.model.trip.TripsError
+import com.example.map.domain.model.trip.TripsResult
 import com.example.map.testing.FakeTripRepository
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers

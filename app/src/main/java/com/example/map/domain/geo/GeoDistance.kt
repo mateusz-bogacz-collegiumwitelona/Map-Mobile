@@ -1,6 +1,6 @@
 package com.example.map.domain.geo
 
-import com.example.map.domain.model.GeoPoint
+import com.example.map.domain.model.geo.GeoPoint
 import kotlin.math.asin
 import kotlin.math.cos
 import kotlin.math.pow

@@ -1,8 +1,8 @@
 package com.example.map.testing
 
-import com.example.map.domain.model.PagedData
-import com.example.map.domain.model.TripSortBy
-import com.example.map.domain.model.TripsResult
+import com.example.map.domain.model.common.PagedData
+import com.example.map.domain.model.trip.TripSortBy
+import com.example.map.domain.model.trip.TripsResult
 import com.example.map.domain.repository.TripRepository
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred

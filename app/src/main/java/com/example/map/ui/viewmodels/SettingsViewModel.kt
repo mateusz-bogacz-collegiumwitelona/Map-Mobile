@@ -2,8 +2,8 @@ package com.example.map.ui.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.map.domain.model.AccountDeletionError
-import com.example.map.domain.model.AccountDeletionResult
+import com.example.map.domain.model.account.AccountDeletionError
+import com.example.map.domain.model.account.AccountDeletionResult
 import com.example.map.domain.session.AccountSession
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow

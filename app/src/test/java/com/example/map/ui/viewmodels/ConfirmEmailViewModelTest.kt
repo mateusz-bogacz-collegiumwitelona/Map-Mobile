@@ -1,10 +1,10 @@
 package com.example.map.ui.viewmodels
 
-import com.example.map.domain.model.AuthTokens
-import com.example.map.domain.model.AuthenticatedAccount
-import com.example.map.domain.model.EmailVerificationError
-import com.example.map.domain.model.EmailVerificationResult
-import com.example.map.domain.model.RegistrationResult
+import com.example.map.domain.model.auth.AuthTokens
+import com.example.map.domain.model.auth.AuthenticatedAccount
+import com.example.map.domain.model.account.EmailVerificationError
+import com.example.map.domain.model.account.EmailVerificationResult
+import com.example.map.domain.model.auth.RegistrationResult
 import com.example.map.domain.repository.AuthRepository
 import com.example.map.domain.repository.TokenStorage
 import com.example.map.domain.session.AuthSession

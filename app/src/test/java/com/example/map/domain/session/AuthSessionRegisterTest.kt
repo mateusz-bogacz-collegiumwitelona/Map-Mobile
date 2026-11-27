@@ -1,7 +1,7 @@
 package com.example.map.domain.session
 
-import com.example.map.domain.model.RegistrationError
-import com.example.map.domain.model.RegistrationResult
+import com.example.map.domain.model.auth.RegistrationError
+import com.example.map.domain.model.auth.RegistrationResult
 import com.example.map.testing.FakeAuthRepository
 import com.example.map.testing.FakeTokenStorage
 import kotlinx.coroutines.test.runTest

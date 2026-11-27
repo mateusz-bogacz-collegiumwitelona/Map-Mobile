@@ -1,4 +1,4 @@
-package com.example.map.domain.model
+package com.example.map.domain.model.geo
 
 data class GeoPoint(
     val latitude: Double,

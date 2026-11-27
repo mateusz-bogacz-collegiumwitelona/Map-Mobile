@@ -2,8 +2,8 @@ package com.example.map.ui.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.map.domain.model.RegistrationError
-import com.example.map.domain.model.RegistrationResult
+import com.example.map.domain.model.auth.RegistrationError
+import com.example.map.domain.model.auth.RegistrationResult
 import com.example.map.domain.session.AuthSession
 import com.example.map.domain.validation.BioError
 import com.example.map.domain.validation.PasswordError

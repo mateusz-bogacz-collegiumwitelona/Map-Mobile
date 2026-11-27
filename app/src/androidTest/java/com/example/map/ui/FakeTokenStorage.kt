@@ -1,6 +1,6 @@
 package com.example.map.ui
 
-import com.example.map.domain.model.AuthTokens
+import com.example.map.domain.model.auth.AuthTokens
 import com.example.map.domain.repository.TokenStorage
 
 internal class FakeTokenStorage(

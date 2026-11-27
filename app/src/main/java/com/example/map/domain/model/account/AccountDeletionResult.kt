@@ -1,4 +1,4 @@
-package com.example.map.domain.model
+package com.example.map.domain.model.account
 
 sealed interface AccountDeletionResult {
     data object Success : AccountDeletionResult

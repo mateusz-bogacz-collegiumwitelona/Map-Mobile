@@ -2,8 +2,8 @@ package com.example.map.ui.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.map.domain.model.EmailChangeError
-import com.example.map.domain.model.EmailChangeResult
+import com.example.map.domain.model.account.EmailChangeError
+import com.example.map.domain.model.account.EmailChangeResult
 import com.example.map.domain.session.AccountSession
 import com.example.map.domain.validation.EmailValidator
 import dagger.hilt.android.lifecycle.HiltViewModel

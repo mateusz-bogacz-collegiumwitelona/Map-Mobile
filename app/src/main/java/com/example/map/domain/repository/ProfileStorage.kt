@@ -1,6 +1,6 @@
 package com.example.map.domain.repository
 
-import com.example.map.domain.model.UserProfile
+import com.example.map.domain.model.user.UserProfile
 
 interface ProfileStorage {
     fun getEmail(): String?

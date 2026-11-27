@@ -1,4 +1,4 @@
-package com.example.map.domain.model
+package com.example.map.domain.model.common
 
 data class PagedData<T>(
     val items: List<T>,

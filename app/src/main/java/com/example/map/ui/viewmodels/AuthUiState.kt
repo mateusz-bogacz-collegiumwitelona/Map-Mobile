@@ -1,6 +1,6 @@
 package com.example.map.ui.viewmodels
 
-import com.example.map.domain.model.UserProfile
+import com.example.map.domain.model.user.UserProfile
 
 data class AuthUiState(
     val isAuthenticated: Boolean,

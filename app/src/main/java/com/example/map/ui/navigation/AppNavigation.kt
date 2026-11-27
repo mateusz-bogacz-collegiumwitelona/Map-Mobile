@@ -12,7 +12,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.example.map.domain.model.UserProfile
+import com.example.map.domain.model.user.UserProfile
 import com.example.map.ui.screens.ChangeEmailScreen
 import com.example.map.ui.screens.ConfirmEmailScreen
 import com.example.map.ui.screens.HomeScreen
