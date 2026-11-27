@@ -1,8 +1,8 @@
 package com.example.map.ui.viewmodels
 
-import com.example.map.domain.model.AuthTokens
-import com.example.map.domain.model.AuthenticatedAccount
-import com.example.map.domain.model.UserProfile
+import com.example.map.domain.model.auth.AuthTokens
+import com.example.map.domain.model.auth.AuthenticatedAccount
+import com.example.map.domain.model.user.UserProfile
 import com.example.map.domain.session.AccountSession
 import com.example.map.domain.session.AuthSession
 import com.example.map.testing.FakeAccountRepository

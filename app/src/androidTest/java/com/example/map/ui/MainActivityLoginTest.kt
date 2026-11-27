@@ -7,11 +7,11 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import com.example.map.domain.model.AuthException
-import com.example.map.domain.model.AuthFailure
-import com.example.map.domain.model.AuthTokens
-import com.example.map.domain.model.AuthenticatedAccount
-import com.example.map.domain.model.UserProfile
+import com.example.map.domain.model.auth.AuthException
+import com.example.map.domain.model.auth.AuthFailure
+import com.example.map.domain.model.auth.AuthTokens
+import com.example.map.domain.model.auth.AuthenticatedAccount
+import com.example.map.domain.model.user.UserProfile
 import com.example.map.domain.session.AccountSession
 import com.example.map.domain.session.AuthSession
 import com.example.map.testing.FakeAccountRepository

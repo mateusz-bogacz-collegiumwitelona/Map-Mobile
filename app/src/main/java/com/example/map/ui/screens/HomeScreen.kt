@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -24,9 +23,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.map.ui.components.Header
+import com.example.map.ui.components.HomeButton
 import com.example.map.ui.theme.BackgroundDark
-import com.example.map.ui.theme.ButtonLight
 import com.example.map.ui.theme.SurfaceGray
+
 
 @Composable
 fun HomeScreen(
@@ -34,7 +34,8 @@ fun HomeScreen(
     profileInitials: String,
     onProfileClick: () -> Unit,
     onLogoutClick: () -> Unit,
-    onSettingsClick: () -> Unit = {}
+    onSettingsClick: () -> Unit = {},
+    onMyTripsClick: () -> Unit = {}
 ) {
     val scrollState = rememberScrollState()
 
@@ -78,9 +79,10 @@ fun HomeScreen(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
-                HomeButton(title = "Moje podróże")
+                HomeButton(title = "Moje podróże", onClick = onMyTripsClick)
                 HomeButton(title = "Nowa podróż")
             }
+
             Spacer(modifier = Modifier.height(16.dp))
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -94,15 +96,3 @@ fun HomeScreen(
     }
 }
 
-@Composable
-fun HomeButton(title: String) {
-    Box(
-        modifier = Modifier
-            .size(150.dp)
-            .background(SurfaceGray, RoundedCornerShape(12.dp))
-            .padding(16.dp),
-        contentAlignment = Alignment.Center
-    ) {
-        Text(text = title, color = ButtonLight, fontSize = 14.sp)
-    }
-}

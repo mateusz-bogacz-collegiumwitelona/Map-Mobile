@@ -1,6 +1,6 @@
 package com.example.map.domain.geo
 
-import com.example.map.domain.model.GeoPoint
+import com.example.map.domain.model.geo.GeoPoint
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import kotlin.math.PI
@@ -63,7 +63,8 @@ class GeoDistanceTest {
 
     @Test
     fun takesTheShortWayAcrossTheAntimeridian() {
-        val acrossAntimeridian = GeoDistance.haversineKm(GeoPoint(0.0, 179.0), GeoPoint(0.0, -179.0))
+        val acrossAntimeridian =
+            GeoDistance.haversineKm(GeoPoint(0.0, 179.0), GeoPoint(0.0, -179.0))
         val acrossPrimeMeridian = GeoDistance.haversineKm(GeoPoint(0.0, -1.0), GeoPoint(0.0, 1.0))
 
         assertEquals(222.38985328911653, acrossAntimeridian, 1e-6)

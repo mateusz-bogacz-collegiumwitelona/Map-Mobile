@@ -1,4 +1,4 @@
-package com.example.map.domain.model
+package com.example.map.domain.model.trip
 
 enum class TransportType {
     CAR,

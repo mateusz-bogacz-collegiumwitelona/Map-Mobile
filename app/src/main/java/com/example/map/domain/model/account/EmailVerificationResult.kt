@@ -1,4 +1,4 @@
-package com.example.map.domain.model
+package com.example.map.domain.model.account
 
 enum class EmailVerificationError {
     INVALID_CODE,

@@ -1,6 +1,6 @@
 package com.example.map.domain.geo
 
-import com.example.map.domain.model.GeoPoint
+import com.example.map.domain.model.geo.GeoPoint
 import kotlin.math.PI
 import kotlin.math.atan2
 import kotlin.math.ceil
@@ -33,7 +33,7 @@ object GreatCircle {
         if (PI - angle < ANGLE_EPSILON) {
             val detour = GeoPoint(0.0, wrapLongitude(from.longitude + 90.0))
             return arc(from, detour, maxSegmentLengthKm) +
-                arc(detour, to, maxSegmentLengthKm).drop(1)
+                    arc(detour, to, maxSegmentLengthKm).drop(1)
         }
 
         val segments = ceil(angle * GeoDistance.EARTH_RADIUS_KM / maxSegmentLengthKm)

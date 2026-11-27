@@ -1,6 +1,6 @@
 package com.example.map.domain.repository
 
-import com.example.map.domain.model.AuthTokens
+import com.example.map.domain.model.auth.AuthTokens
 
 interface TokenStorage {
     fun saveTokens(tokens: AuthTokens)

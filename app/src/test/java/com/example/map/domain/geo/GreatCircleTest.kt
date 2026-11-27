@@ -1,6 +1,6 @@
 package com.example.map.domain.geo
 
-import com.example.map.domain.model.GeoPoint
+import com.example.map.domain.model.geo.GeoPoint
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -26,7 +26,12 @@ class GreatCircleTest {
         val arc = GreatCircle.arc(warsaw, losAngeles)
 
         arc.zipWithNext().forEach { (from, to) ->
-            assertTrue(GeoDistance.haversineKm(from, to) <= GreatCircle.MAX_SEGMENT_LENGTH_KM + 1e-6)
+            assertTrue(
+                GeoDistance.haversineKm(
+                    from,
+                    to
+                ) <= GreatCircle.MAX_SEGMENT_LENGTH_KM + 1e-6
+            )
         }
     }
 
@@ -47,7 +52,8 @@ class GreatCircleTest {
 
     @Test
     fun passesThroughTheMidpointOfTheEquator() {
-        val arc = GreatCircle.arc(GeoPoint(0.0, 0.0), GeoPoint(0.0, 90.0), maxSegmentLengthKm = 5003.8)
+        val arc =
+            GreatCircle.arc(GeoPoint(0.0, 0.0), GeoPoint(0.0, 90.0), maxSegmentLengthKm = 5003.8)
 
         assertEquals(3, arc.size)
         assertEquals(0.0, arc[1].latitude, 1e-9)
@@ -105,9 +111,13 @@ class GreatCircleTest {
             for (longitudeStep in 0..24) {
                 val latitude = -87.3 + latitudeStep * 7.27
                 val longitude = -178.9 + longitudeStep * 14.53
-                val antipodeLongitude = if (longitude > 0.0) longitude - 180.0 else longitude + 180.0
+                val antipodeLongitude =
+                    if (longitude > 0.0) longitude - 180.0 else longitude + 180.0
 
-                assertHalfCircleRoute(GeoPoint(latitude, longitude), GeoPoint(-latitude, antipodeLongitude))
+                assertHalfCircleRoute(
+                    GeoPoint(latitude, longitude),
+                    GeoPoint(-latitude, antipodeLongitude)
+                )
             }
         }
     }
@@ -151,7 +161,12 @@ class GreatCircleTest {
 
         assertEquals(113, arc.size)
         arc.zipWithNext().forEach { (from, to) ->
-            assertTrue(GeoDistance.haversineKm(from, to) <= GreatCircle.MIN_SEGMENT_LENGTH_KM + 1e-6)
+            assertTrue(
+                GeoDistance.haversineKm(
+                    from,
+                    to
+                ) <= GreatCircle.MIN_SEGMENT_LENGTH_KM + 1e-6
+            )
         }
     }
 }

@@ -8,8 +8,8 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.espresso.Espresso
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import com.example.map.domain.model.AuthTokens
-import com.example.map.domain.model.UserProfile
+import com.example.map.domain.model.auth.AuthTokens
+import com.example.map.domain.model.user.UserProfile
 import com.example.map.domain.session.AccountSession
 import com.example.map.domain.session.AuthSession
 import com.example.map.testing.FakeAccountRepository

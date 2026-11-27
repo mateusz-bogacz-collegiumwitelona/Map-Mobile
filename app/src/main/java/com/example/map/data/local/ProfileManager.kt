@@ -3,7 +3,7 @@ package com.example.map.data.local
 import android.content.Context
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
-import com.example.map.domain.model.UserProfile
+import com.example.map.domain.model.user.UserProfile
 import com.example.map.domain.repository.ProfileStorage
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject

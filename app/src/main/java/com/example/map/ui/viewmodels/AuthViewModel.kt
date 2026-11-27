@@ -2,8 +2,8 @@ package com.example.map.ui.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.map.domain.model.AuthException
-import com.example.map.domain.model.AuthFailure
+import com.example.map.domain.model.auth.AuthException
+import com.example.map.domain.model.auth.AuthFailure
 import com.example.map.domain.session.AccountSession
 import com.example.map.domain.session.AuthSession
 import dagger.hilt.android.lifecycle.HiltViewModel

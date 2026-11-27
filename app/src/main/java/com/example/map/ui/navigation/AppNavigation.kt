@@ -12,7 +12,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.example.map.domain.model.UserProfile
+import com.example.map.domain.model.user.UserProfile
 import com.example.map.ui.screens.ChangeEmailScreen
 import com.example.map.ui.screens.ConfirmEmailScreen
 import com.example.map.ui.screens.HomeScreen
@@ -20,12 +20,14 @@ import com.example.map.ui.screens.LoginScreen
 import com.example.map.ui.screens.ProfilePrivacySettingsScreen
 import com.example.map.ui.screens.RegisterScreen
 import com.example.map.ui.screens.SettingsScreen
+import com.example.map.ui.screens.TripsScreen
 import com.example.map.ui.viewmodels.AuthViewModel
 import com.example.map.ui.viewmodels.ChangeEmailViewModel
 import com.example.map.ui.viewmodels.ConfirmEmailViewModel
 import com.example.map.ui.viewmodels.ProfilePrivacySettingsViewModel
 import com.example.map.ui.viewmodels.RegisterViewModel
 import com.example.map.ui.viewmodels.SettingsViewModel
+import com.example.map.ui.viewmodels.TripsViewModel
 import kotlinx.coroutines.delay
 
 private const val LOGIN_ROUTE = "login"
@@ -35,6 +37,7 @@ private const val CHANGE_EMAIL_ROUTE = "change_email"
 private const val PROFILE_PRIVACY_ROUTE = "profile_privacy"
 private const val REGISTER_ROUTE = "register"
 private const val CONFIRM_EMAIL_ROUTE = "confirm_email"
+private const val TRIPS_ROUTE = "trips"
 
 @Composable
 fun AppNavigation(
@@ -46,7 +49,8 @@ fun AppNavigation(
         hiltViewModel()
     },
     registerViewModelFactory: @Composable () -> RegisterViewModel = { hiltViewModel() },
-    confirmEmailViewModelFactory: @Composable () -> ConfirmEmailViewModel = { hiltViewModel() }
+    confirmEmailViewModelFactory: @Composable () -> ConfirmEmailViewModel = { hiltViewModel() },
+    tripsViewModelFactory: @Composable () -> TripsViewModel = { hiltViewModel()}
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val navController = rememberNavController()
@@ -151,6 +155,9 @@ fun AppNavigation(
                     },
                     onSettingsClick = {
                         navController.navigate(SETTINGS_ROUTE)
+                    },
+                    onMyTripsClick = {
+                        navController.navigate(TRIPS_ROUTE)
                     }
                 )
             }
@@ -211,6 +218,36 @@ fun AppNavigation(
                     },
                     onBackClick = {
                         navController.popBackStack()
+                    }
+                )
+            }
+
+            composable(TRIPS_ROUTE) {
+                val tripsViewModel = tripsViewModelFactory()
+                val tripsState by tripsViewModel.uiState.collectAsState()
+
+                TripsScreen(
+                    uiState = tripsState,
+                    onSearchChanged = tripsViewModel::onSearchChange,
+                    onSortChange = tripsViewModel::onSortChange,
+                    onRefresh = tripsViewModel::refresh,
+                    onLoadMore = tripsViewModel::loadNextPage,
+                    onRetry = tripsViewModel::retry,
+                    onViewOnMapClick = { _ -> /* TODO: nawigacja do widoku mapy pojedynczej podróży */ },
+                    onEditTripClick = { _ -> /* TODO: nawigacja do kreatora edycji */ },
+                    onDeleteTripClick = { _ -> /* TODO: dialog potwierdzenia usunięcia */ },
+                    onCreateTripClick = { /* TODO: nawigacja do tworzenia nowej podróży */ },
+                    onBackClick = {
+                        navController.popBackStack()
+                    },
+                    onProfileClick = {
+                        navController.navigate(PROFILE_PRIVACY_ROUTE)
+                    },
+                    onSettingsClick = {
+                        navController.navigate(SETTINGS_ROUTE)
+                    },
+                    onLogoutClick = {
+                        viewModel.logout()
                     }
                 )
             }

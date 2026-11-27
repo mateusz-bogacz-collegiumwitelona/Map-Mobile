@@ -6,9 +6,9 @@ import com.example.map.data.remote.dto.request.ConfirmEmailChangeRequest
 import com.example.map.data.remote.dto.request.EditUserNamesRequest
 import com.example.map.data.remote.dto.response.UserProfileDataResponse
 import com.example.map.data.remote.service.UserApiService
-import com.example.map.domain.model.ProfileUpdateError
-import com.example.map.domain.model.ProfileUpdateResult
-import com.example.map.domain.model.UserProfile
+import com.example.map.domain.model.user.ProfileUpdateError
+import com.example.map.domain.model.user.ProfileUpdateResult
+import com.example.map.domain.model.user.UserProfile
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaType

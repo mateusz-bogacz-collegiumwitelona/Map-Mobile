@@ -2,7 +2,7 @@ package com.example.map.di
 
 import com.example.map.BuildConfig
 import com.example.map.data.remote.AuthInterceptor
-import com.example.map.domain.model.AuthTokens
+import com.example.map.domain.model.auth.AuthTokens
 import com.example.map.testing.FakeTokenStorage
 import kotlinx.serialization.Serializable
 import okhttp3.Request

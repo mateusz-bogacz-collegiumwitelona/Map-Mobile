@@ -1,4 +1,4 @@
-package com.example.map.domain.model
+package com.example.map.domain.model.auth
 
 sealed interface RegistrationResult {
     data object Success : RegistrationResult

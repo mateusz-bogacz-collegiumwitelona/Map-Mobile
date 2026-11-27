@@ -41,3 +41,31 @@ suspend fun <R> executeUnitApiCall(
         onUnknownError(exception.message)
     }
 }
+
+suspend fun <T, R> executeDataApiCall(
+    json: Json,
+    request: suspend () -> Response<ApiEnvelope<T>>,
+    onSuccess: (T) -> R,
+    onApiError: (statusCode: Int, errorCode: String?, message: String?) -> R,
+    onNetworkError: () -> R,
+    onUnknownError: (message: String?) -> R
+): R {
+    return try {
+        val response = request()
+        val body = response.body()
+        val data = body?.data
+
+        if (response.isSuccessful && body?.isSuccess == true && data != null) {
+            onSuccess(data)
+        } else {
+            val errorBody = body ?: response.parseErrorEnvelope(json)
+            onApiError(response.code(), errorBody?.errorCode, errorBody?.message)
+        }
+    } catch (cex: CancellationException) {
+        throw cex
+    } catch (_: okio.IOException) {
+        onNetworkError()
+    } catch (ex: Exception) {
+        onUnknownError(ex.message)
+    }
+}

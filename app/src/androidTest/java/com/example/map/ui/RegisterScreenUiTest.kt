@@ -14,8 +14,8 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTextInput
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import com.example.map.domain.model.RegistrationError
-import com.example.map.domain.model.RegistrationResult
+import com.example.map.domain.model.auth.RegistrationError
+import com.example.map.domain.model.auth.RegistrationResult
 import com.example.map.domain.session.AuthSession
 import com.example.map.testing.FakeAuthRepository
 import com.example.map.testing.FakeTokenStorage

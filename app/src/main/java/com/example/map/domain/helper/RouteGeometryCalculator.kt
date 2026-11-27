@@ -1,10 +1,10 @@
-package com.example.map.domain.usecase
+package com.example.map.domain.helper
 
 import com.example.map.domain.geo.GeoDistance
 import com.example.map.domain.geo.GreatCircle
-import com.example.map.domain.model.GeoPoint
-import com.example.map.domain.model.RouteGeometry
-import com.example.map.domain.model.TransportType
+import com.example.map.domain.model.geo.GeoPoint
+import com.example.map.domain.model.geo.RouteGeometry
+import com.example.map.domain.model.trip.TransportType
 
 class RouteGeometryCalculator {
 

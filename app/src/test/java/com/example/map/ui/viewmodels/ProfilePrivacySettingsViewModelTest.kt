@@ -1,8 +1,9 @@
 package com.example.map.ui.viewmodels
 
-import com.example.map.domain.model.ProfileUpdateError
-import com.example.map.domain.model.ProfileUpdateResult
-import com.example.map.domain.model.UserProfile
+import com.example.map.domain.model.auth.AuthTokens
+import com.example.map.domain.model.user.ProfileUpdateError
+import com.example.map.domain.model.user.ProfileUpdateResult
+import com.example.map.domain.model.user.UserProfile
 import com.example.map.domain.session.AccountSession
 import com.example.map.domain.session.AuthSession
 import com.example.map.testing.FakeAccountRepository
@@ -385,7 +386,7 @@ class ProfilePrivacySettingsViewModelTest {
         )
         val tokenStorage = FakeTokenStorage(
             accessToken?.let {
-                com.example.map.domain.model.AuthTokens(
+                AuthTokens(
                     accessToken = it,
                     refreshToken = "refresh-token"
                 )

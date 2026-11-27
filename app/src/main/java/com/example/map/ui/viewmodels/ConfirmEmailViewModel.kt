@@ -2,8 +2,8 @@ package com.example.map.ui.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.map.domain.model.EmailVerificationError
-import com.example.map.domain.model.EmailVerificationResult
+import com.example.map.domain.model.account.EmailVerificationError
+import com.example.map.domain.model.account.EmailVerificationResult
 import com.example.map.domain.session.AuthSession
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow

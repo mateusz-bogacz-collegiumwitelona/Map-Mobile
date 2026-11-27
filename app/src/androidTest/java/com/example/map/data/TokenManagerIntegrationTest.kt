@@ -2,7 +2,7 @@ package com.example.map.data
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
-import com.example.map.domain.model.AuthTokens
+import com.example.map.domain.model.auth.AuthTokens
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull

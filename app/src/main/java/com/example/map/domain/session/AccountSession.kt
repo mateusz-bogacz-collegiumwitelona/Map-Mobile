@@ -1,9 +1,9 @@
 package com.example.map.domain.session
 
-import com.example.map.domain.model.AccountDeletionResult
-import com.example.map.domain.model.EmailChangeResult
-import com.example.map.domain.model.ProfileUpdateResult
-import com.example.map.domain.model.UserProfile
+import com.example.map.domain.model.account.AccountDeletionResult
+import com.example.map.domain.model.account.EmailChangeResult
+import com.example.map.domain.model.user.ProfileUpdateResult
+import com.example.map.domain.model.user.UserProfile
 import com.example.map.domain.repository.AccountRepository
 import com.example.map.domain.repository.ProfileRepository
 import com.example.map.domain.repository.ProfileStorage

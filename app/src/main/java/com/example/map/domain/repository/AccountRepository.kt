@@ -1,7 +1,7 @@
 package com.example.map.domain.repository
 
-import com.example.map.domain.model.AccountDeletionResult
-import com.example.map.domain.model.EmailChangeResult
+import com.example.map.domain.model.account.AccountDeletionResult
+import com.example.map.domain.model.account.EmailChangeResult
 
 interface AccountRepository {
     suspend fun requestEmailChange(newEmail: String): EmailChangeResult

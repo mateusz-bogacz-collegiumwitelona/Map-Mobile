@@ -6,10 +6,10 @@ import com.example.map.data.remote.dto.request.ConfirmEmailChangeRequest
 import com.example.map.data.remote.dto.request.EditUserNamesRequest
 import com.example.map.data.remote.dto.response.UserProfileDataResponse
 import com.example.map.data.remote.service.UserApiService
-import com.example.map.domain.model.AccountDeletionError
-import com.example.map.domain.model.AccountDeletionResult
-import com.example.map.domain.model.EmailChangeError
-import com.example.map.domain.model.EmailChangeResult
+import com.example.map.domain.model.account.AccountDeletionError
+import com.example.map.domain.model.account.AccountDeletionResult
+import com.example.map.domain.model.account.EmailChangeError
+import com.example.map.domain.model.account.EmailChangeResult
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaType

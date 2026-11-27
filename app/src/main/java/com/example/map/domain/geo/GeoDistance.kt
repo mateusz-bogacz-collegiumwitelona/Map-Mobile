@@ -1,6 +1,6 @@
 package com.example.map.domain.geo
 
-import com.example.map.domain.model.GeoPoint
+import com.example.map.domain.model.geo.GeoPoint
 import kotlin.math.asin
 import kotlin.math.cos
 import kotlin.math.pow
@@ -30,7 +30,7 @@ object GeoDistance {
         val longitudeDelta = Math.toRadians(to.longitude - from.longitude)
 
         val haversine = sin(latitudeDelta / 2).pow(2) +
-            cos(fromLatitude) * cos(toLatitude) * sin(longitudeDelta / 2).pow(2)
+                cos(fromLatitude) * cos(toLatitude) * sin(longitudeDelta / 2).pow(2)
 
         return 2 * asin(sqrt(haversine.coerceIn(0.0, 1.0)))
     }

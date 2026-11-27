@@ -4,7 +4,7 @@ import android.content.Context
 import androidx.core.content.edit
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
-import com.example.map.domain.model.AuthTokens
+import com.example.map.domain.model.auth.AuthTokens
 import com.example.map.domain.repository.TokenStorage
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject

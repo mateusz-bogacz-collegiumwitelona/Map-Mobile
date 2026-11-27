@@ -1,4 +1,4 @@
-package com.example.map.domain.model
+package com.example.map.domain.model.geo
 
 data class RouteGeometry(
     val points: List<GeoPoint>,
